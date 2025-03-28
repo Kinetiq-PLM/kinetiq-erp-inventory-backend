@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "api",
+    "feature_stockflow",
     "rest_framework",
     "corsheaders",    
     "django_cognito_jwt"
