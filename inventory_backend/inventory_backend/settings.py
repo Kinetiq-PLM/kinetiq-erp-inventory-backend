@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    "api",
+    "pcounts",
     "feature_stockflow",
     "rest_framework",
     "corsheaders",    
@@ -97,11 +97,14 @@ WSGI_APPLICATION = 'inventory_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'erp_db',
-        'USER': 'erp_user',
+        'NAME': 'Kinetiq-DB-Schema',
+        'USER': 'postgres',
         'PASSWORD': 'tris123',
         'HOST': 'localhost',
         'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=public,inventory,human_resources,admin'
+        }
     }
 }
 

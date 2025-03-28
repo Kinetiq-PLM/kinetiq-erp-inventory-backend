@@ -1,5 +1,3 @@
-from restframework import serializers
-
 # inventory/serializers.py
 from rest_framework import serializers
 from .models import WarehouseMovement
