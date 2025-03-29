@@ -100,13 +100,20 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
                 return None
         return None
     
+from rest_framework import serializers
+from .models import Purchase_requests, Assets, Raw_Materials
+
 class PurchaseRequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Purchase_requests 
-        fields = [
-            'request_id',
-            'employee_id',
-            'item_id',
-            'purchase_description',
-            'purchase_quantity'
-        ]
+        model = Purchase_requests
+        fields = '__all__'
+    
+    def validate_item_id(self, value):
+        asset_exists = Assets.objects.filter(asset_id=value).exists()
+        material_exists = Raw_Materials.objects.filter(material_id=value).exists()
+        
+        if not (asset_exists or material_exists):
+            raise serializers.ValidationError(
+                "Item ID must be a valid Asset ID or Material ID."
+            )
+        return value
