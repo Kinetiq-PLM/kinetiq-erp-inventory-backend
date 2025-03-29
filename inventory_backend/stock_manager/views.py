@@ -1,10 +1,12 @@
 from rest_framework import viewsets, generics
-from .models import Products, AdminItemMasterData, Assets, Raw_Materials
+from .models import (
+    Products, AdminItemMasterData, Assets,
+    Raw_Materials, Purchase_requests
+)
 from .serializers import (
-    ProductsSerializer,
-    AdminItemMasterDataSerializer,
-    AssetsSerializer,
-    RawMaterialsSerializer
+    ProductsSerializer, AdminItemMasterDataSerializer,
+    AssetsSerializer, RawMaterialsSerializer,
+    PurchaseRequestSerializer
 )
 
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -23,7 +25,11 @@ class RawMaterialsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Raw_Materials.objects.all()
     serializer_class = RawMaterialsSerializer
 
-# Optional: If you need a view to retrieve products along with their item master data details.
+class PurchaseRequestViewSet(viewsets.ModelViewSet):
+    queryset = Purchase_requests.objects.all()
+    serializer_class = PurchaseRequestSerializer    
+
+
 class ProductAdminItemDataView(generics.RetrieveAPIView):
     queryset = Products.objects.all().prefetch_related('admin_item')
     serializer_class = ProductsSerializer

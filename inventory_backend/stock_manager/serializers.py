@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Products, AdminItemMasterData, InventoryItemMasterData, Assets, Raw_Materials
+from .models import Products, AdminItemMasterData, InventoryItemMasterData, Assets, Raw_Materials, Purchase_requests
 
 class AdminItemMasterDataSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.product_name', read_only=True)
@@ -99,3 +99,14 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
             except InventoryItemMasterData.DoesNotExist:
                 return None
         return None
+    
+class PurchaseRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Purchase_requests 
+        fields = [
+            'request_id',
+            'employee_id',
+            'item_id',
+            'purchase_description',
+            'purchase_quantity'
+        ]

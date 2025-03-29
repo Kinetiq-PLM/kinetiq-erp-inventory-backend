@@ -102,10 +102,11 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
-            'options': '-c search_path=public,inventory,human_resources,admin'
+            'options': '-c search_path=public,purchasing,inventory,human_resources,admin'
         }
     }
 }
+
 
 
 # Password validation

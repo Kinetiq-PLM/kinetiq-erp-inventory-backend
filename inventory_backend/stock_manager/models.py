@@ -183,3 +183,59 @@ class Raw_Materials(models.Model):
 
     def __str__(self):
         return self.material_name
+
+
+class Purchase_requests(models.Model):
+    request_id = models.CharField(
+        primary_key=True,
+        max_length=255
+    )
+    employee_id = models.CharField(  
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    approval_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    item_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    purchase_item = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    purchase_description = models.TextField(
+        null=True,
+        blank=True
+    )
+    purchase_quantity = models.IntegerField(
+        null=True,
+        blank=True
+    )
+    valid_date = models.DateField(
+        null=True,
+        blank=True
+    )
+    document_date = models.DateField(
+        null=True,
+        blank=True
+    )
+    required_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'purchase_requests'
+
+    def __str__(self):
+        return self.item_id
+
+
