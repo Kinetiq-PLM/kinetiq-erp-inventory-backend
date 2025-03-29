@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "api",
+    "feature_depreciation_report",
     "rest_framework",
     "corsheaders",    
     "django_cognito_jwt"
