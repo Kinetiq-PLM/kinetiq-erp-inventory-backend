@@ -24,6 +24,11 @@ class Warehouse(models.Model):
         db_table = 'warehouses'
 
 
+STATUS_CHOICES = [
+    ('in_transit', 'In Transit'),
+    ('completed', 'Completed'),
+]
+
 # Minimal Employee model representing human_resources.employees
 class Employee(models.Model):
     employee_id = models.CharField(
@@ -95,13 +100,10 @@ class DepreciationReport(models.Model):
         blank=True
     )
    
-    status = models.enums.CharField(
+    status = models.CharField(
         db_column='status',
         max_length=20,
-        choices=[
-            ('in_transit', 'In Transit'),
-            ('completed', 'Completed'),
-        ]
+        choices=STATUS_CHOICES,
     )
   
     warehouse = models.ForeignKey(

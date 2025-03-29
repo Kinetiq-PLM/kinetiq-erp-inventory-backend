@@ -12,5 +12,5 @@ from django.urls import path
 from .views import DepreciationReportList
 
 urlpatterns = [
-    path('depreciation-report/', DepreciationReportList.as_view(), name='depreciation-report-list'),
+    path('depreciation-report/', DepreciationReportList.as_view(), name='depreciation-report'),
 ]
