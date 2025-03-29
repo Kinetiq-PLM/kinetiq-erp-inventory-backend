@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Assets, Raw_materials, Products, ItemMasterData
+from .models import Assets, Raw_Materials, Products, InventoryItemMasterData
 
 admin.site.register(Assets)
-admin.site.register(Raw_materials)
+admin.site.register(Raw_Materials)
 admin.site.register(Products)
-admin.site.register(ItemMasterData)
+admin.site.register(InventoryItemMasterData)

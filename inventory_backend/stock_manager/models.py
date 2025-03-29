@@ -1,105 +1,35 @@
 from django.db import models
 
-class Assets(models.Model):
-    asset_id = models.CharField(
-        db_column='asset_id',
-        primary_key=True,
-        max_length=255
-    )
-    # Use the "item_id" column in ItemMasterData (which should be unique)
-    item = models.ForeignKey(
-        'ItemMasterData',
-        to_field='item_id', 
-        db_column='item_id',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
-    )
-    asset_name = models.CharField(
-        db_column='asset_name',
-        max_length=255,
-    )
-
-    class Meta:
-        managed = False
-        db_table = 'assets'
-
-    def __str__(self):
-        return self.asset_name
-
-
-class Raw_materials(models.Model):
-    material_id = models.CharField(
-        db_column='material_id',  # Use material_id as the primary key column name
-        primary_key=True,
-        max_length=255
-    )
-    # Reference the unique "item_id" in ItemMasterData
-    item = models.ForeignKey(
-        'ItemMasterData',
-        to_field='item_id',  
-        db_column='item_id',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
-    )
-    material_name = models.CharField(
-        db_column='material_name',
-        max_length=255,
-    )
-
-    class Meta:
-        managed = False
-        db_table = 'raw_materials'
-
-    def __str__(self):
-        return self.material_name
-
-
-# Master Product Data model (from admin.products)
-class Products(models.Model):
-    product_id = models.CharField(
-        db_column='product_id',
-        primary_key=True,
-        max_length=255
-    )
+# 1. True Origin of Items – admin.item_master_data
+class AdminItemMasterData(models.Model):
     item_id = models.CharField(
         db_column='item_id',
-        max_length=255,
-        null=True,
-        blank=True,
-        unique=True
-    )
-    product_name = models.CharField(
-        db_column='product_name',
+        primary_key=True,
         max_length=255
     )
+    # Add any additional fields for the true item details here
 
     class Meta:
-        managed = False  
-        db_table = 'products'
+        managed = False
+        db_table = 'item_master_data'
 
     def __str__(self):
-        return self.product_name
+        return self.item_id
 
 
-# Item Master Data model 
-class ItemMasterData(models.Model):
+# 2. Inventory Details – inventory.inventory_item_master_data
+class InventoryItemMasterData(models.Model):
     item_md_id = models.CharField(
         db_column='item_md_id',
         primary_key=True,
-        max_length=50
+        max_length=255
     )
-    # Link to Products by matching its "item_id" field; this column will be named "item_id" in the database and must be unique
-    item = models.ForeignKey(
-        Products,
-        to_field='item_id',
+    # Link to the true origin in admin.item_master_data via item_id
+    admin_item = models.ForeignKey(
+        AdminItemMasterData,
         db_column='item_id',
-        null=True,
-        blank=True,
-        unique=True,
-        on_delete=models.SET_NULL,
-        related_name='item_master_data'
+        to_field='item_id',
+        on_delete=models.CASCADE
     )
     minimum_threshold = models.IntegerField(
         db_column='minimum_threshold',
@@ -142,5 +72,114 @@ class ItemMasterData(models.Model):
         db_table = 'inventory_item_master_data'
 
     def __str__(self):
-        product_name = self.item.product_name if self.item else 'Unknown Item'
-        return f"{product_name} - Stock: {self.total_stock}"
+        return f"Inventory for {self.admin_item.item_id}"
+
+
+# 3. Products – admin.products
+class Products(models.Model):
+    product_id = models.CharField(
+        db_column='product_id',
+        primary_key=True,
+        max_length=255
+    )
+    item = models.ForeignKey(
+        AdminItemMasterData,
+        db_column='item_id',
+        to_field='item_id',
+        on_delete=models.CASCADE,  
+        unique=True,
+        related_name='product'
+    )
+    product_name = models.CharField(
+        db_column='product_name',
+        max_length=255
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'products'
+
+    def __str__(self):
+        return self.product_name
+
+
+# 4. Assets – admin.assets - UPDATED with additional fields
+class Assets(models.Model):
+    asset_id = models.CharField(
+        db_column='asset_id',
+        primary_key=True,
+        max_length=255
+    )
+    # Link to the true origin in AdminItemMasterData
+    item = models.ForeignKey(
+        AdminItemMasterData,
+        db_column='item_id',
+        to_field='item_id',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    asset_name = models.CharField(
+        db_column='asset_name',
+        max_length=255
+    )
+    # Added fields from the database diagram
+    purchase_date = models.DateField(
+        db_column='purchase_date',
+        null=True,
+        blank=True
+    )
+    serial_no = models.CharField(  
+        db_column='serial_no',
+        max_length=50,  
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'assets'
+
+    def __str__(self):
+        return self.asset_name
+
+
+# 5. Raw Materials – admin.raw_materials - UPDATED with additional fields
+class Raw_Materials(models.Model):
+    material_id = models.CharField(
+        db_column='material_id',
+        primary_key=True,
+        max_length=255
+    )
+    # Link to the true origin in AdminItemMasterData
+    item = models.ForeignKey(
+        AdminItemMasterData,
+        db_column='item_id',
+        to_field='item_id',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    material_name = models.CharField(
+        db_column='material_name',
+        max_length=255
+    )
+    # Added fields from the database diagram
+    description = models.TextField(
+        db_column='description',
+        null=True,
+        blank=True
+    )
+    unit_of_measure = models.CharField(
+        db_column='unit_of_measure',
+        max_length=50,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'raw_materials'
+
+    def __str__(self):
+        return self.material_name
