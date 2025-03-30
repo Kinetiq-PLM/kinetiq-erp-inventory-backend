@@ -1,10 +1,10 @@
 from rest_framework import generics
-from .models import DepreciationReport
-from .serializers import DepreciationReportSerializer
+from .models import DeprecationReport
+from .serializers import DeprecationReportSerializer
 
 class DepreciationReportList(generics.ListCreateAPIView):
-    queryset = DepreciationReport.objects.all()
-    serializer_class = DepreciationReportSerializer
+    queryset = DeprecationReport.objects.all()
+    serializer_class = DeprecationReportSerializer
 
 
 
