@@ -39,6 +39,24 @@ class RawMaterial(models.Model):
     class Meta:
         db_table = 'admin"."raw_materials'
         managed = False
+
+class Product(models.Model):
+    product_id = models.CharField(
+        db_column='product_id',
+        primary_key=True,
+        max_length=255
+    )
+
+    product_name = models.CharField(
+        db_column='product_name',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        db_table = 'admin"."products'
+        managed = False
         
 
 
