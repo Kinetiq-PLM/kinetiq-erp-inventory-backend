@@ -9,8 +9,15 @@ class Asset(models.Model):
         max_length=255
     )
 
+    asset_name = models.CharField(     
+        db_column='asset_name',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
     class Meta:
-        db_table = 'admin"."asset'
+        db_table = 'admin"."assets'
         managed = False
         
 
@@ -20,6 +27,13 @@ class RawMaterial(models.Model):
         db_column='material_id',
         primary_key=True,
         max_length=255
+    )
+
+    material_name = models.CharField(
+        db_column='material_name',
+        max_length=255,
+        null=True,
+        blank=True
     )
 
     class Meta:
@@ -35,6 +49,13 @@ class productDocument(models.Model):
         primary_key=True,
         max_length=255
     )
+
+    expiry_date = models.DateField(
+        db_column='expiry_date',
+        auto_now_add=True,
+        null=False,
+    )
+
 
     class Meta:
         db_table = 'operations"."product_document_items'

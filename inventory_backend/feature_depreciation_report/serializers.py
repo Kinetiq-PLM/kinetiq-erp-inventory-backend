@@ -2,34 +2,15 @@
 from rest_framework import serializers
 from .models import DeprecationReport, DocumentItem,  Asset, RawMaterial, productDocument, Employee
 
-class AssetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Asset
-        fields = '__all__'
-
-class RawMaterialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RawMaterial
-        fields = '__all__'
-
-class productDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = productDocument
-        fields = '__all__'
-
-class DocumentItemSerializer(serializers.ModelSerializer):
-    asset_id = AssetSerializer(read_only=True)
-    material_id = RawMaterialSerializer(read_only=True)  
-    productdocu_id = productDocumentSerializer(read_only=True) 
-
-    class Meta:
-        model = DocumentItem
-        fields = '__all__'
-
-class DeprecationReportSerializer(serializers.ModelSerializer):
-    content_id = DocumentItemSerializer(read_only=True)
-    employee = serializers.CharField(source='employee.first_name', read_only=True) # Assuming Employee model has first_name field
-
-    class Meta:
-        model = DeprecationReport
-        fields = '__all__'
+class DeprecationReportSerializer(serializers.Serializer):
+    deprecation_report_id = serializers.CharField()
+    status = serializers.CharField()
+    reported_date = serializers.DateTimeField()
+    content_id = serializers.CharField()  
+    asset_id = serializers.CharField(source="content_id__asset_id")
+    asset_name = serializers.CharField(source="content_id__asset_id__asset_name")
+    material_id = serializers.CharField(source="content_id__material_id")
+    material_name = serializers.CharField(source="content_id__material_id__material_name")
+    productdocu_id = serializers.CharField(source="content_id__asset_id")
+    productdocu_id = serializers.CharField(source="content_id__productdocu_id")
+    expiry_date = serializers.DateField(source="content_id__productdocu_id__expiry_date")

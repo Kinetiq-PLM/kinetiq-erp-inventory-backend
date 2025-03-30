@@ -9,8 +9,8 @@
 
 
 from django.urls import path
-from .views import DepreciationReportList
+from .views import DeprecationReportList
 
 urlpatterns = [
-    path('depreciation-report/', DepreciationReportList.as_view(), name='depreciation-report'),
+    path('depreciation-report/', DeprecationReportList.as_view(), name='depreciation-report'),
 ]
