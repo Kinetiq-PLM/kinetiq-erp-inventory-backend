@@ -1,12 +1,13 @@
 from django.db import models
 
-# Master Product Data model (from admin.products)
+# admin.products
 class Products(models.Model):
     product_id = models.CharField(
         db_column='product_id',
         primary_key=True,
         max_length=255
     )
+
     item_id = models.CharField(
         db_column='item_id',
         max_length=255,
@@ -14,42 +15,86 @@ class Products(models.Model):
         blank=True,
         unique=True
     )
-
     product_name = models.CharField(
         db_column='product_name',
         max_length=255
     )
 
     class Meta:
-        managed = False  # This table already exists
+        managed = False
         db_table = 'products'
 
     def __str__(self):
         return self.product_name
 
 
-# Item Master Data model (bridge table)
-class ItemMasterData(models.Model):
-    item_md_id = models.CharField(
-        db_column='item_md_id',
+class InventoryItem(models.Model):
+    inventory_item_id = models.CharField(
+        db_column='inventory_item_id',
         primary_key=True,
-        max_length=50
+        max_length=255
     )
-    item = models.ForeignKey(
+
+    product = models.ForeignKey(
         Products,
-        to_field='item_id',  # Link using item_id (not product_id)
-        db_column='item_id',
+        to_field='item_id',       
+        db_column='item_id',       
+        on_delete=models.CASCADE,
         null=True,
-        blank=True,
-        on_delete=models.SET_NULL
+        blank=True
+    )
+    minimum_threshold = models.IntegerField(
+        db_column='minimum_threshold',
+        default=0
+    )
+    maximum_threshold = models.IntegerField(
+        db_column='maximum_threshold',
+        default=0
+    )
+    total_stock = models.IntegerField(
+        db_column='total_stock',
+        default=0
+    )
+    available_stock = models.IntegerField(
+        db_column='available_stock',
+        default=0
+    )
+    last_update = models.DateTimeField(
+        db_column='last_update',
+        auto_now_add=True
     )
 
     class Meta:
         managed = False
-        db_table = 'inventory_item_master_data'
+        db_table = 'inventory_item'
+
+    def __str__(self):
+        return self.product.product_name if self.product else "No Product"
 
 
-# Minimal Employee model representing human_resources.employees
+class ProductData(models.Model):
+    product_data_id = models.CharField(
+        db_column='item_md_id',
+        primary_key=True,
+        max_length=50
+    )
+  
+    inventory_item = models.ForeignKey(
+        InventoryItem,
+        db_column='inventory_item_id',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'inventory_product_data'
+
+    def __str__(self):
+        return self.product_data_id
+
+
 class Employee(models.Model):
     employee_id = models.CharField(
         db_column='employee_id',
@@ -73,47 +118,42 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
-
 STATUS_CHOICES = [
     ('Verified', 'Verified'),
     ('Pending', 'Pending'),
     ('In-review', 'In-review'),
 ]
 
-# Cyclic Count model
+
 class CyclicCount(models.Model):
     inventory_count_id = models.CharField(
         db_column='inventory_count_id',
         primary_key=True,
         max_length=255
     )
-
-    item_md = models.ForeignKey(
-        ItemMasterData,
+    
+    product_data = models.ForeignKey(
+        ProductData,
         db_column='item_md_id',
         on_delete=models.CASCADE,
         null=True,
         blank=True
     )
-
     item_onhand = models.IntegerField(
         db_column='item_onhand',
         null=True,
         blank=True
     )
-
     item_actually_counted = models.IntegerField(
         db_column='item_actually_counted',
         null=True,
         blank=True
     )
-
     difference_in_qty = models.IntegerField(
         db_column='difference_in_qty',
         null=True,
         blank=True
     )
-
     employee = models.ForeignKey(
         Employee,
         db_column='employee_id',
@@ -121,19 +161,16 @@ class CyclicCount(models.Model):
         null=True,
         blank=True
     )
-
     status = models.CharField(
         db_column='status',
         max_length=20,
         choices=STATUS_CHOICES
     )
-
     remarks = models.TextField(
         db_column='remarks',
         null=True,
         blank=True
     )
-
     time_period = models.CharField(
         db_column='time_period',
         max_length=50,

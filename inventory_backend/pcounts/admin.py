@@ -3,6 +3,7 @@ from .models import *
 
 # Register your models here.
 admin.site.register(Products)
-admin.site.register(ItemMasterData)
+admin.site.register(InventoryItem)
 admin.site.register(Employee)
 admin.site.register(CyclicCount)
+admin.site.register(ProductData)
