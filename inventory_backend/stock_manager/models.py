@@ -1,13 +1,12 @@
 from django.db import models
 
-# 1. True Origin of Items – admin.item_master_data
+# 1. admin.item_master_data
 class AdminItemMasterData(models.Model):
     item_id = models.CharField(
         db_column='item_id',
         primary_key=True,
         max_length=255
     )
-    # Add any additional fields for the true item details here
 
     class Meta:
         managed = False
@@ -17,14 +16,14 @@ class AdminItemMasterData(models.Model):
         return self.item_id
 
 
-# 2. Inventory Details – inventory.inventory_item_master_data
+# 2. Inventory Details 
 class InventoryItemMasterData(models.Model):
     item_md_id = models.CharField(
         db_column='item_md_id',
         primary_key=True,
         max_length=255
     )
-    # Link to the true origin in admin.item_master_data via item_id
+
     admin_item = models.ForeignKey(
         AdminItemMasterData,
         db_column='item_id',
@@ -69,24 +68,25 @@ class InventoryItemMasterData(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'inventory_item_master_data'
+        db_table = 'inventory_product_data'
 
     def __str__(self):
         return f"Inventory for {self.admin_item.item_id}"
 
 
-# 3. Products – admin.products
+# 3. Products 
 class Products(models.Model):
     product_id = models.CharField(
         db_column='product_id',
         primary_key=True,
         max_length=255
     )
+
     item = models.ForeignKey(
         AdminItemMasterData,
         db_column='item_id',
         to_field='item_id',
-        on_delete=models.CASCADE,  
+        on_delete=models.CASCADE,
         unique=True,
         related_name='product'
     )
@@ -103,14 +103,14 @@ class Products(models.Model):
         return self.product_name
 
 
-# 4. Assets – admin.assets - UPDATED with additional fields
+# 4. Assets
 class Assets(models.Model):
     asset_id = models.CharField(
         db_column='asset_id',
         primary_key=True,
         max_length=255
     )
-    # Link to the true origin in AdminItemMasterData
+
     item = models.ForeignKey(
         AdminItemMasterData,
         db_column='item_id',
@@ -123,7 +123,6 @@ class Assets(models.Model):
         db_column='asset_name',
         max_length=255
     )
-    # Added fields from the database diagram
     purchase_date = models.DateField(
         db_column='purchase_date',
         null=True,
@@ -144,14 +143,13 @@ class Assets(models.Model):
         return self.asset_name
 
 
-# 5. Raw Materials – admin.raw_materials - UPDATED with additional fields
+# 5. Raw Materials 
 class Raw_Materials(models.Model):
     material_id = models.CharField(
         db_column='material_id',
         primary_key=True,
         max_length=255
     )
-    # Link to the true origin in AdminItemMasterData
     item = models.ForeignKey(
         AdminItemMasterData,
         db_column='item_id',
@@ -164,7 +162,6 @@ class Raw_Materials(models.Model):
         db_column='material_name',
         max_length=255
     )
-    # Added fields from the database diagram
     description = models.TextField(
         db_column='description',
         null=True,
@@ -185,6 +182,7 @@ class Raw_Materials(models.Model):
         return self.material_name
 
 
+# 6. Purchase Requests 
 class Purchase_requests(models.Model):
     request_id = models.CharField(
         primary_key=True,
@@ -237,5 +235,3 @@ class Purchase_requests(models.Model):
 
     def __str__(self):
         return self.item_id
-
-

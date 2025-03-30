@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Products, AdminItemMasterData, InventoryItemMasterData, Assets, Raw_Materials, Purchase_requests
+from .models import (
+    Products, AdminItemMasterData, InventoryItemMasterData,
+    Assets, Raw_Materials, Purchase_requests
+)
 
 class AdminItemMasterDataSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.product_name', read_only=True)
@@ -36,7 +39,7 @@ class ProductsSerializer(serializers.ModelSerializer):
         model = Products
         fields = [
             'product_id',
-            'item',  
+            'item',
             'item_id',
             'product_name',
             'admin_item'
@@ -46,7 +49,6 @@ class AssetsSerializer(serializers.ModelSerializer):
     available_stock = serializers.SerializerMethodField()
     item_id = serializers.CharField(source='item.item_id', read_only=True)
     
-    # Added fields for assets
     purchase_date = serializers.DateField(format="%Y-%m-%d", required=False)
     serial_no = serializers.CharField(required=False)
 
@@ -63,19 +65,17 @@ class AssetsSerializer(serializers.ModelSerializer):
         ]
 
     def get_available_stock(self, obj):
-        if obj.item:
-            try:
-                inventory = InventoryItemMasterData.objects.get(admin_item=obj.item)
-                return inventory.available_stock
-            except InventoryItemMasterData.DoesNotExist:
-                return None
-        return None
+        from .models import InventoryItemMasterData
+        try:
+            inventory = InventoryItemMasterData.objects.filter(admin_item=obj.item).first()
+            return inventory.available_stock if inventory else None
+        except Exception as e:
+            return None
 
 class RawMaterialsSerializer(serializers.ModelSerializer):
     available_stock = serializers.SerializerMethodField()
     item_id = serializers.CharField(source='item.item_id', read_only=True)
     
-    # Added fields for raw materials
     description = serializers.CharField(required=False)
     unit_of_measure = serializers.CharField(required=False)
 
@@ -92,16 +92,12 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
         ]
 
     def get_available_stock(self, obj):
-        if obj.item:
-            try:
-                inventory = InventoryItemMasterData.objects.get(admin_item=obj.item)
-                return inventory.available_stock
-            except InventoryItemMasterData.DoesNotExist:
-                return None
-        return None
-    
-from rest_framework import serializers
-from .models import Purchase_requests, Assets, Raw_Materials
+        from .models import InventoryItemMasterData
+        try:
+            inventory = InventoryItemMasterData.objects.filter(admin_item=obj.item).first()
+            return inventory.available_stock if inventory else None
+        except Exception as e:
+            return None
 
 class PurchaseRequestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -109,6 +105,7 @@ class PurchaseRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def validate_item_id(self, value):
+        from .models import Assets, Raw_Materials
         asset_exists = Assets.objects.filter(asset_id=value).exists()
         material_exists = Raw_Materials.objects.filter(material_id=value).exists()
         
