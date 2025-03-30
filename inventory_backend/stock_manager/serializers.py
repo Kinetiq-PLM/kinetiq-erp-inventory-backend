@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from .models import (
-    Products, AdminItemMasterData, InventoryItemMasterData,
+    Products, AdminItemMasterData, InventoryItemData, InventoryProductData,
     Assets, Raw_Materials, Purchase_requests
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AdminItemMasterDataSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.product_name', read_only=True)
@@ -14,26 +17,39 @@ class AdminItemMasterDataSerializer(serializers.ModelSerializer):
             'product_name'
         ]
 
-class InventoryItemMasterDataSerializer(serializers.ModelSerializer):
-    admin_item = AdminItemMasterDataSerializer(read_only=True)
+class InventoryItemDataSerializer(serializers.ModelSerializer):
+    item_id = serializers.CharField(source='admin_item.item_id', read_only=True)
 
     class Meta:
-        model = InventoryItemMasterData
+        model = InventoryItemData
         fields = [
-            'item_md_id',
-            'admin_item',
+            'inventory_item_id',
+            'item_id',
             'minimum_threshold',
             'maximum_threshold',
             'total_stock',
-            'stock_on_order',
-            'stock_committed',
             'available_stock',
             'last_update'
+        ]
+
+class InventoryProductDataSerializer(serializers.ModelSerializer):
+    inventory_item_id = serializers.CharField(source='inventory_item.inventory_item_id', read_only=True)
+    item_id = serializers.CharField(source='inventory_item.admin_item.item_id', read_only=True)
+
+    class Meta:
+        model = InventoryProductData
+        fields = [
+            'item_md_id',
+            'inventory_item_id',
+            'item_id',
+            'stock_on_order',
+            'stock_committed'
         ]
 
 class ProductsSerializer(serializers.ModelSerializer):
     item_id = serializers.CharField(source='item.item_id', read_only=True)
     admin_item = AdminItemMasterDataSerializer(source='item', read_only=True)
+    inventory_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Products
@@ -42,8 +58,32 @@ class ProductsSerializer(serializers.ModelSerializer):
             'item',
             'item_id',
             'product_name',
-            'admin_item'
+            'admin_item',
+            'inventory_data'
         ]
+
+    def get_inventory_data(self, obj):
+        try:
+            inventory_item = InventoryItemData.objects.filter(admin_item=obj.item).first()
+            
+            data = {}
+            
+            if inventory_item:
+                data["item_id"] = inventory_item.admin_item.item_id
+                data["total_stock"] = inventory_item.total_stock
+                data["available_stock"] = inventory_item.available_stock
+                
+                product_data = InventoryProductData.objects.filter(inventory_item=inventory_item).first()
+                
+                if product_data:
+                    data["stock_on_order"] = product_data.stock_on_order
+                    data["stock_committed"] = product_data.stock_committed
+            
+            return data
+        except Exception as e:
+            logger.error(f"Error merging inventory data for product {obj.product_id}: {str(e)}")
+            return {}
+
 
 class AssetsSerializer(serializers.ModelSerializer):
     available_stock = serializers.SerializerMethodField()
@@ -65,11 +105,11 @@ class AssetsSerializer(serializers.ModelSerializer):
         ]
 
     def get_available_stock(self, obj):
-        from .models import InventoryItemMasterData
         try:
-            inventory = InventoryItemMasterData.objects.filter(admin_item=obj.item).first()
+            inventory = InventoryItemData.objects.filter(admin_item=obj.item).first()
             return inventory.available_stock if inventory else None
         except Exception as e:
+            logger.error(f"Error getting available stock for asset {obj.asset_id}: {str(e)}")
             return None
 
 class RawMaterialsSerializer(serializers.ModelSerializer):
@@ -92,11 +132,11 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
         ]
 
     def get_available_stock(self, obj):
-        from .models import InventoryItemMasterData
         try:
-            inventory = InventoryItemMasterData.objects.filter(admin_item=obj.item).first()
+            inventory = InventoryItemData.objects.filter(admin_item=obj.item).first()
             return inventory.available_stock if inventory else None
         except Exception as e:
+            logger.error(f"Error getting available stock for material {obj.material_id}: {str(e)}")
             return None
 
 class PurchaseRequestSerializer(serializers.ModelSerializer):

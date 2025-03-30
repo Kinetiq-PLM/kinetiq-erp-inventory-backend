@@ -1,6 +1,6 @@
 from django.db import models
 
-# 1. admin.item_master_data
+# 1. True Origin of Items 
 class AdminItemMasterData(models.Model):
     item_id = models.CharField(
         db_column='item_id',
@@ -16,49 +16,43 @@ class AdminItemMasterData(models.Model):
         return self.item_id
 
 
-# 2. Inventory Details 
-class InventoryItemMasterData(models.Model):
-    item_md_id = models.CharField(
-        db_column='item_md_id',
+# 2. Inventory Item Data 
+class InventoryItemData(models.Model):
+    inventory_item_id = models.CharField(
+        db_column='inventory_item_id',  
         primary_key=True,
         max_length=255
     )
-
-    admin_item = models.ForeignKey(
+    admin_item = models.OneToOneField(
         AdminItemMasterData,
-        db_column='item_id',
+        db_column='item_id',  
         to_field='item_id',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='inventory_item'
     )
     minimum_threshold = models.IntegerField(
         db_column='minimum_threshold',
         null=True,
-        blank=True
+        blank=True,
+        default=0
     )
     maximum_threshold = models.IntegerField(
         db_column='maximum_threshold',
         null=True,
-        blank=True
+        blank=True,
+        default=0
     )
     total_stock = models.IntegerField(
         db_column='total_stock',
         null=True,
-        blank=True
-    )
-    stock_on_order = models.IntegerField(
-        db_column='stock_on_order',
-        null=True,
-        blank=True
-    )
-    stock_committed = models.IntegerField(
-        db_column='stock_committed',
-        null=True,
-        blank=True
+        blank=True,
+        default=0
     )
     available_stock = models.IntegerField(
         db_column='available_stock',
         null=True,
-        blank=True
+        blank=True,
+        default=0
     )
     last_update = models.DateTimeField(
         db_column='last_update',
@@ -67,27 +61,57 @@ class InventoryItemMasterData(models.Model):
     )
 
     class Meta:
-        managed = False
-        db_table = 'inventory_product_data'
+        managed = False 
+        db_table = 'inventory_item'
 
     def __str__(self):
-        return f"Inventory for {self.admin_item.item_id}"
+        return f"ItemData for {self.admin_item.item_id}"
 
 
-# 3. Products 
+# 3. Inventory Product Data 
+class InventoryProductData(models.Model):
+    item_md_id = models.CharField(
+        db_column='item_md_id',
+        primary_key=True,
+        max_length=255
+    )
+    inventory_item = models.ForeignKey(
+        InventoryItemData,
+        db_column='inventory_item_id',  
+        to_field='inventory_item_id',  
+        on_delete=models.CASCADE,
+        related_name='product_data' 
+    )
+    stock_on_order = models.IntegerField(
+        db_column='stock_on_order',
+        null=True,
+        blank=True,
+        default=0
+    )
+    stock_committed = models.IntegerField(
+        db_column='stock_committed',
+        null=True,
+        blank=True,
+        default=0
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'inventory_product_data'  
+
+
+# 4. Products
 class Products(models.Model):
     product_id = models.CharField(
         db_column='product_id',
         primary_key=True,
         max_length=255
     )
-
-    item = models.ForeignKey(
+    item = models.OneToOneField(
         AdminItemMasterData,
         db_column='item_id',
         to_field='item_id',
         on_delete=models.CASCADE,
-        unique=True,
         related_name='product'
     )
     product_name = models.CharField(
@@ -102,15 +126,13 @@ class Products(models.Model):
     def __str__(self):
         return self.product_name
 
-
-# 4. Assets
+# 5. Assets 
 class Assets(models.Model):
     asset_id = models.CharField(
         db_column='asset_id',
         primary_key=True,
         max_length=255
     )
-
     item = models.ForeignKey(
         AdminItemMasterData,
         db_column='item_id',
@@ -143,7 +165,7 @@ class Assets(models.Model):
         return self.asset_name
 
 
-# 5. Raw Materials 
+# 6. Raw Materials 
 class Raw_Materials(models.Model):
     material_id = models.CharField(
         db_column='material_id',
@@ -182,7 +204,7 @@ class Raw_Materials(models.Model):
         return self.material_name
 
 
-# 6. Purchase Requests 
+# 7. Purchase Requests
 class Purchase_requests(models.Model):
     request_id = models.CharField(
         primary_key=True,
