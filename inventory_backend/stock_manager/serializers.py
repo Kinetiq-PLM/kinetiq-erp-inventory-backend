@@ -86,8 +86,8 @@ class ProductsSerializer(serializers.ModelSerializer):
 
 
 class AssetsSerializer(serializers.ModelSerializer):
-    available_stock = serializers.SerializerMethodField()
     item_id = serializers.CharField(source='item.item_id', read_only=True)
+    inventory_data = serializers.SerializerMethodField()
     
     purchase_date = serializers.DateField(format="%Y-%m-%d", required=False)
     serial_no = serializers.CharField(required=False)
@@ -101,20 +101,36 @@ class AssetsSerializer(serializers.ModelSerializer):
             'asset_name', 
             'purchase_date',
             'serial_no',
-            'available_stock'
+            'inventory_data'
         ]
 
-    def get_available_stock(self, obj):
+    def get_inventory_data(self, obj):
+        if not obj.item:
+            return {}
+            
         try:
-            inventory = InventoryItemData.objects.filter(admin_item=obj.item).first()
-            return inventory.available_stock if inventory else None
+            # Get inventory data directly using the item_id
+            inventory_item = InventoryItemData.objects.filter(
+                admin_item_id=obj.item.item_id
+            ).first()
+            
+            if not inventory_item:
+                return {}
+                
+            return {
+                'item_id': obj.item.item_id,
+                'total_stock': inventory_item.total_stock,
+                'available_stock': inventory_item.available_stock,
+                'minimum_threshold': inventory_item.minimum_threshold,
+                'maximum_threshold': inventory_item.maximum_threshold,
+                'last_update': inventory_item.last_update
+            }
         except Exception as e:
-            logger.error(f"Error getting available stock for asset {obj.asset_id}: {str(e)}")
-            return None
-
+            logger.error(f"Error getting inventory data for asset {obj.asset_id}: {str(e)}")
+            return {}
 class RawMaterialsSerializer(serializers.ModelSerializer):
-    available_stock = serializers.SerializerMethodField()
     item_id = serializers.CharField(source='item.item_id', read_only=True)
+    inventory_data = serializers.SerializerMethodField()
     
     description = serializers.CharField(required=False)
     unit_of_measure = serializers.CharField(required=False)
@@ -128,17 +144,33 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
             'material_name',
             'description',
             'unit_of_measure',
-            'available_stock'
+            'inventory_data'
         ]
 
-    def get_available_stock(self, obj):
+    def get_inventory_data(self, obj):
+        if not obj.item:
+            return {}
+            
         try:
-            inventory = InventoryItemData.objects.filter(admin_item=obj.item).first()
-            return inventory.available_stock if inventory else None
+            # Get inventory data directly using the item_id
+            inventory_item = InventoryItemData.objects.filter(
+                admin_item_id=obj.item.item_id
+            ).first()
+            
+            if not inventory_item:
+                return {}
+                
+            return {
+                'item_id': obj.item.item_id,
+                'total_stock': inventory_item.total_stock,
+                'available_stock': inventory_item.available_stock,
+                'minimum_threshold': inventory_item.minimum_threshold,
+                'maximum_threshold': inventory_item.maximum_threshold,
+                'last_update': inventory_item.last_update
+            }
         except Exception as e:
-            logger.error(f"Error getting available stock for material {obj.material_id}: {str(e)}")
-            return None
-
+            logger.error(f"Error getting inventory data for material {obj.material_id}: {str(e)}")
+            return {}
 class PurchaseRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Purchase_requests
