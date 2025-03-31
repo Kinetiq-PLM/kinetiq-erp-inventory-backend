@@ -185,7 +185,6 @@ class PurchaseRequestSerializer(serializers.ModelSerializer):
             'asset_id',
             'material_details',
             'asset_details',
-            'purchase_item',
             'purchase_description',
             'purchase_quantity',
             'valid_date',

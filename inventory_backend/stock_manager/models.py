@@ -220,14 +220,7 @@ class Purchase_requests(models.Model):
         null=True,
         blank=True
     )
-    # Removing the old item_id field
-    # item_id = models.CharField(
-    #     max_length=255,
-    #     null=True,
-    #     blank=True
-    # )
-    
-    # Adding the new fields for material_id and asset_id
+
     material_id = models.ForeignKey(
         Raw_Materials,
         db_column='material_id',
@@ -236,9 +229,9 @@ class Purchase_requests(models.Model):
         null=True,
         blank=True,
         related_name='purchase_requests'
-    )
+    )       
     asset_id = models.ForeignKey(
-        Assets,
+        Assets,                                                                                                                                                 
         db_column='asset_id',
         to_field='asset_id',
         on_delete=models.CASCADE,
@@ -247,11 +240,6 @@ class Purchase_requests(models.Model):
         related_name='purchase_requests'
     )
     
-    purchase_item = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True
-    )
     purchase_description = models.TextField(
         null=True,
         blank=True
