@@ -13,7 +13,8 @@ class ProductDeprecationReportList(generics.ListCreateAPIView):
         return DeprecationReport.objects.filter(
             content_id__productdocu_id__isnull=False  
         ).select_related(
-            "content_id__productdocu_id"
+            "content_id__productdocu_id",
+            "productdocu_id__product_id",
         ).values(
             "deprecation_report_id",
             "status",
@@ -21,6 +22,7 @@ class ProductDeprecationReportList(generics.ListCreateAPIView):
             "content_id",
             "content_id__productdocu_id",  
             "content_id__productdocu_id__expiry_date",
+            "content_id__productdocu_id__product_id__product_name",
         )
 
 
@@ -49,7 +51,8 @@ class RawMatDeprecationReportList(generics.ListCreateAPIView):
         return DeprecationReport.objects.filter(
             content_id__material_id__isnull=False  # Only include records where material_id is NOT NULL
         ).select_related(
-            "content_id__material_id"
+            "content_id__material_id",
+            "m"
         ).values(
             "deprecation_report_id",
             "status",

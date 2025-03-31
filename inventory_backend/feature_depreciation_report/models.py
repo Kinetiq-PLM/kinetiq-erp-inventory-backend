@@ -68,6 +68,14 @@ class productDocument(models.Model):
         max_length=255
     )
 
+    product_id = models.ForeignKey(
+        Product,
+        db_column='product_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
     expiry_date = models.DateField(
         db_column='expiry_date',
         auto_now_add=True,

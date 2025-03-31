@@ -25,6 +25,6 @@ class ProductDeprecationReportSerializer(serializers.Serializer):
     status = serializers.CharField()
     reported_date = serializers.DateTimeField()
     content_id = serializers.CharField()  
-    productdocu_id = serializers.CharField(source="content_id__asset_id")
     productdocu_id = serializers.CharField(source="content_id__productdocu_id")
+    product_name = serializers.CharField(source="content_id__productdocu_id__product_id__product_name")
     expiry_date = serializers.DateField(source="content_id__productdocu_id__expiry_date")
