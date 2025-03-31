@@ -109,7 +109,6 @@ class AssetsSerializer(serializers.ModelSerializer):
             return {}
             
         try:
-            # Get inventory data directly using the item_id
             inventory_item = InventoryItemData.objects.filter(
                 admin_item_id=obj.item.item_id
             ).first()
@@ -128,6 +127,7 @@ class AssetsSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error getting inventory data for asset {obj.asset_id}: {str(e)}")
             return {}
+
 class RawMaterialsSerializer(serializers.ModelSerializer):
     item_id = serializers.CharField(source='item.item_id', read_only=True)
     inventory_data = serializers.SerializerMethodField()
@@ -152,7 +152,6 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
             return {}
             
         try:
-            # Get inventory data directly using the item_id
             inventory_item = InventoryItemData.objects.filter(
                 admin_item_id=obj.item.item_id
             ).first()
@@ -171,18 +170,39 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error getting inventory data for material {obj.material_id}: {str(e)}")
             return {}
+
 class PurchaseRequestSerializer(serializers.ModelSerializer):
+    material_details = RawMaterialsSerializer(source='material_id', read_only=True)
+    asset_details = AssetsSerializer(source='asset_id', read_only=True)
+    
     class Meta:
         model = Purchase_requests
-        fields = '__all__'
+        fields = [
+            'request_id',
+            'employee_id',
+            'approval_id',
+            'material_id',
+            'asset_id',
+            'material_details',
+            'asset_details',
+            'purchase_item',
+            'purchase_description',
+            'purchase_quantity',
+            'valid_date',
+            'document_date',
+            'required_date',
+        ]
     
-    def validate_item_id(self, value):
-        from .models import Assets, Raw_Materials
-        asset_exists = Assets.objects.filter(asset_id=value).exists()
-        material_exists = Raw_Materials.objects.filter(material_id=value).exists()
+    def validate(self, data):
+        """
+        Check that only one of material_id or asset_id is provided.
+        """
+        material_id = data.get('material_id')
+        asset_id = data.get('asset_id')
         
-        if not (asset_exists or material_exists):
+        if material_id and asset_id:
             raise serializers.ValidationError(
-                "Item ID must be a valid Asset ID or Material ID."
+                "Only one of material_id or asset_id should be provided, not both."
             )
-        return value
+            
+        return data

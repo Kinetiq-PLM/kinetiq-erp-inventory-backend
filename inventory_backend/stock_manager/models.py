@@ -220,11 +220,33 @@ class Purchase_requests(models.Model):
         null=True,
         blank=True
     )
-    item_id = models.CharField(
-        max_length=255,
+    # Removing the old item_id field
+    # item_id = models.CharField(
+    #     max_length=255,
+    #     null=True,
+    #     blank=True
+    # )
+    
+    # Adding the new fields for material_id and asset_id
+    material_id = models.ForeignKey(
+        Raw_Materials,
+        db_column='material_id',
+        to_field='material_id',
+        on_delete=models.CASCADE,
         null=True,
-        blank=True
+        blank=True,
+        related_name='purchase_requests'
     )
+    asset_id = models.ForeignKey(
+        Assets,
+        db_column='asset_id',
+        to_field='asset_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='purchase_requests'
+    )
+    
     purchase_item = models.CharField(
         max_length=255,
         null=True,
@@ -256,4 +278,9 @@ class Purchase_requests(models.Model):
         db_table = 'purchase_requests'
 
     def __str__(self):
-        return self.item_id
+        if self.material_id:
+            return f"Purchase Request for Material: {self.material_id.material_name}"
+        elif self.asset_id:
+            return f"Purchase Request for Asset: {self.asset_id.asset_name}"
+        else:
+            return f"Purchase Request: {self.request_id}"
