@@ -20,6 +20,7 @@ class ProductDeprecationReportList(generics.ListCreateAPIView):
             "status",
             "reported_date",
             "content_id",
+            "content_id__quantity",
             "content_id__productdocu_id",  
             "content_id__productdocu_id__expiry_date",
             "content_id__productdocu_id__product_id__product_name",
@@ -38,7 +39,8 @@ class AssetsDeprecationReportList(generics.ListCreateAPIView):
             "deprecation_report_id",
             "status",
             "reported_date",
-            "content_id",
+            "content_id",          
+            "content_id__quantity",
             "content_id__asset_id",  
             "content_id__asset_id__asset_name",
         )
@@ -58,6 +60,7 @@ class RawMatDeprecationReportList(generics.ListCreateAPIView):
             "status",
             "reported_date",
             "content_id",
+            "content_id__quantity",
             "content_id__material_id",
             "content_id__material_id__material_name", 
         )

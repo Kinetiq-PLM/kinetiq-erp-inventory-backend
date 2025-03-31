@@ -9,7 +9,7 @@ class AssetsDeprecationReportSerializer(serializers.Serializer):
     asset_name = serializers.CharField(source="content_id__asset_id__asset_name")
     status = serializers.CharField()
     reported_date = serializers.DateTimeField()
-
+    quantity = serializers.IntegerField(source="content_id__quantity")
     
 
 class RawMatDeprecationReportSerializer(serializers.Serializer):
@@ -19,6 +19,7 @@ class RawMatDeprecationReportSerializer(serializers.Serializer):
     material_name = serializers.CharField(source="content_id__material_id__material_name")
     status = serializers.CharField()
     reported_date = serializers.DateTimeField()
+    quantity = serializers.IntegerField(source="content_id__quantity")
 
 class ProductDeprecationReportSerializer(serializers.Serializer):
     deprecation_report_id = serializers.CharField()
@@ -28,3 +29,4 @@ class ProductDeprecationReportSerializer(serializers.Serializer):
     productdocu_id = serializers.CharField(source="content_id__productdocu_id")
     product_name = serializers.CharField(source="content_id__productdocu_id__product_id__product_name")
     expiry_date = serializers.DateField(source="content_id__productdocu_id__expiry_date")
+    quantity = serializers.IntegerField(source="content_id__quantity")

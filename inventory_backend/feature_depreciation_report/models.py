@@ -120,6 +120,13 @@ class DocumentItem(models.Model):
         blank=True
     )
 
+    quantity = models.IntegerField( 
+        db_column='quantity',
+        null=True,
+        blank=True
+    )
+
+
     class Meta:
         db_table = 'operations"."document_items'
         managed = False
@@ -180,6 +187,7 @@ class DeprecationReport(models.Model):
         choices=STATUS_CHOICES,
     )
 
+    
     Employee = models.ForeignKey(
         Employee,
         db_column='employee_id',
