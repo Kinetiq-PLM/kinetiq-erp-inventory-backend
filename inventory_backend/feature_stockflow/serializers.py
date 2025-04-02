@@ -27,9 +27,17 @@ class WarehouseMovementSerializer(serializers.ModelSerializer):
             'reference_id_order',
         ]
 
+class WarehouseItemListSerializer(serializers.Serializer):
+    item_name = serializers.CharField()
+    item_management = serializers.CharField()
+    item_type = serializers.CharField()
+    identifier = serializers.CharField()
+    expiry_date = serializers.DateField()
+    quantity = serializers.IntegerField()
+    content_id = serializers.CharField()
+    warehouse_loc = serializers.CharField()
+    
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
         fields = ['warehouse_id', 'warehouse_location']  
-
-        
