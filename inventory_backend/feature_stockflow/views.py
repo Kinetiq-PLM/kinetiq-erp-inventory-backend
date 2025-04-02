@@ -20,7 +20,7 @@ class WarehouseItemsList(generics.ListCreateAPIView):
             "productdocu_id__product_id"
         ).annotate(
             
-            item_type=Case(
+            type=Case(
                 When(material_id__isnull=False, then=Value("Raw Material")),
                 When(asset_id__isnull=False, then=Value("Asset")),
                 When(productdocu_id__isnull=False, then=Value("Product")),
@@ -62,7 +62,7 @@ class WarehouseItemsList(generics.ListCreateAPIView):
         ).values(
             "content_id",
             "item_name",
-            "item_type",
+            "type",
             "item_management",
             "identifier",
             "expiry_date",

@@ -30,7 +30,7 @@ class WarehouseMovementSerializer(serializers.ModelSerializer):
 class WarehouseItemListSerializer(serializers.Serializer):
     item_name = serializers.CharField()
     item_management = serializers.CharField()
-    item_type = serializers.CharField()
+    type = serializers.CharField()
     identifier = serializers.CharField()
     expiry_date = serializers.DateField()
     quantity = serializers.IntegerField()
