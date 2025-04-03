@@ -11,7 +11,7 @@ class CyclicCountList(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = CyclicCount.objects.select_related(
-            'product_data__inventory_item__product',
+            'product_data__inventory_item__item__product',
             'employee'
         ).all()
         return queryset

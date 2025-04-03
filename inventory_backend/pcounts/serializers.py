@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CyclicCount, ProductData, InventoryItem, Products, Employee
+from .models import CyclicCount, ProductData, InventoryItem, ItemMasterData, Product, Employee
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,10 +35,13 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             if not obj.product_data.inventory_item:
                 logger.info(f"No inventory_item for {obj.inventory_count_id}")
                 return "No Inventory Item"
-            if not obj.product_data.inventory_item.product:
+            if not obj.product_data.inventory_item.item:
+                logger.info(f"No item master data for {obj.inventory_count_id}")
+                return "No Item Master Data"
+            if not obj.product_data.inventory_item.item.product:
                 logger.info(f"No product for {obj.inventory_count_id}")
                 return "No Product"
-            product_name = obj.product_data.inventory_item.product.product_name
+            product_name = obj.product_data.inventory_item.item.product.product_name
             logger.info(f"Found product_name: {product_name} for {obj.inventory_count_id}")
             return product_name
         except Exception as e:
@@ -47,8 +50,8 @@ class CyclicCountSerializer(serializers.ModelSerializer):
 
     def get_item_id(self, obj):
         try:
-            if obj.product_data and obj.product_data.inventory_item and obj.product_data.inventory_item.product:
-                return obj.product_data.inventory_item.product.item_id
+            if obj.product_data and obj.product_data.inventory_item and obj.product_data.inventory_item.item:
+                return obj.product_data.inventory_item.item.item_id
             return None
         except Exception as e:
             logger.error(f"Error getting item_id: {str(e)}")
@@ -73,10 +76,13 @@ class CyclicCountSerializer(serializers.ModelSerializer):
                 info["has_inventory_item"] = obj.product_data.inventory_item is not None
                 if obj.product_data.inventory_item:
                     info["inventory_item_id"] = obj.product_data.inventory_item.inventory_item_id
-                    info["has_product"] = obj.product_data.inventory_item.product is not None
-                    if obj.product_data.inventory_item.product:
-                        info["product_id"] = obj.product_data.inventory_item.product.product_id
-                        info["product_name"] = obj.product_data.inventory_item.product.product_name
+                    info["has_item_master"] = obj.product_data.inventory_item.item is not None
+                    if obj.product_data.inventory_item.item:
+                        info["item_id"] = obj.product_data.inventory_item.item.item_id
+                        info["has_product"] = obj.product_data.inventory_item.item.product is not None
+                        if obj.product_data.inventory_item.item.product:
+                            info["product_id"] = obj.product_data.inventory_item.item.product.product_id
+                            info["product_name"] = obj.product_data.inventory_item.item.product.product_name
             return info
         except Exception as e:
             return {"error": str(e)}
