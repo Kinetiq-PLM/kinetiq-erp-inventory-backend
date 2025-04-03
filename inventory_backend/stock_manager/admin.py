@@ -1,18 +1,18 @@
 from django.contrib import admin
 from .models import (
-    AdminItemMasterData,
+    ItemMasterData,
     InventoryItemData,
     InventoryProductData,
-    Products,
-    Assets,
-    Raw_Materials,
+    Product,
+    Asset,
+    RawMaterial,
     Purchase_requests
 )
 
-admin.site.register(AdminItemMasterData)
+admin.site.register(ItemMasterData)
 admin.site.register(InventoryItemData)
 admin.site.register(InventoryProductData)
-admin.site.register(Products)
-admin.site.register(Assets)
-admin.site.register(Raw_Materials)
+admin.site.register(Product)
+admin.site.register(Asset)
+admin.site.register(RawMaterial)
 admin.site.register(Purchase_requests)

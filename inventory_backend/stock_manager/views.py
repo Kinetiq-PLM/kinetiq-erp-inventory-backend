@@ -1,8 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import (
-    Products, AdminItemMasterData, InventoryItemData, InventoryProductData,
-    Assets, Raw_Materials, Purchase_requests
+    Product, ItemMasterData, InventoryItemData, InventoryProductData,
+    Asset, RawMaterial, Purchase_requests
 )
 from .serializers import (
     ProductsSerializer, AdminItemMasterDataSerializer,
@@ -12,11 +12,11 @@ from .serializers import (
 )
 
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Products.objects.all()
+    queryset = Product.objects.all()
     serializer_class = ProductsSerializer
 
 class AdminItemMasterDataViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = AdminItemMasterData.objects.all()
+    queryset = ItemMasterData.objects.all()
     serializer_class = AdminItemMasterDataSerializer
 
 class InventoryItemDataViewSet(viewsets.ReadOnlyModelViewSet):
@@ -28,11 +28,11 @@ class InventoryProductDataViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InventoryProductDataSerializer
 
 class AssetsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Assets.objects.all()
+    queryset = Asset.objects.all()
     serializer_class = AssetsSerializer
 
 class RawMaterialsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Raw_Materials.objects.all()
+    queryset = RawMaterial.objects.all()
     serializer_class = RawMaterialsSerializer
 
 class PurchaseRequestViewSet(viewsets.ModelViewSet):
@@ -54,8 +54,6 @@ class PurchaseRequestViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         
         if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
             
         return Response(serializer.data)
