@@ -19,6 +19,28 @@ class Asset(models.Model):
         db_table = 'admin"."assets'
         managed = False
         
+class item_master_data(models.Model):
+    item_id = models.CharField(
+        db_column='item_id',
+        primary_key=True,
+        max_length=255
+    )
+
+    asset_id = models.ForeignKey(
+        Asset,
+        db_column='asset_id',
+        on_delete=models.CASCADE,
+        null=True,
+    )
+
+    class Meta:
+        db_table = 'admin"."item_master_data'  
+        managed = False  
+
+    def __str__(self):
+        return self.item_id
+
+
 
 # Dummy Model for Raw Material (to be replaced with actual model)
 class RawMaterial(models.Model):
@@ -105,9 +127,9 @@ class DocumentItem(models.Model):
         max_length=255
     )
 
-    asset_id = models.ForeignKey(
-        Asset,
-        db_column='asset_id',
+    item_id = models.ForeignKey(
+        item_master_data,
+        db_column='item_id',
         on_delete=models.CASCADE,
         null=True,
         blank=True
@@ -149,8 +171,10 @@ class DocumentItem(models.Model):
         blank=True
     )
 
-    warehouse_loc = models.CharField(
-        db_column='warehouse_loc',
+    warehouse_id = models.ForeignKey(
+        Warehouse,
+        db_column='warehouse_id',
+        on_delete=models.CASCADE,
         max_length=255,
         null=True,
         blank=True
@@ -183,16 +207,6 @@ class Employee(models.Model):
 
 
 # Bridge Models (placeholders for foreign key relationships)
-class ItemMasterData(models.Model):
-    item_id = models.CharField(max_length=255, primary_key=True)
-
-    class Meta:
-        db_table = 'admin"."item_master_data'  
-        managed = False  
-
-    def __str__(self):
-        return self.item_id
-
 
 
 class PurchaseOrder(models.Model):
@@ -221,7 +235,7 @@ class Order(models.Model):
 class WarehouseMovement(models.Model):
     movement_id = models.CharField(max_length=255, primary_key=True)
     item = models.ForeignKey(
-        ItemMasterData,
+        item_master_data,
         on_delete=models.CASCADE,
         db_column='item_id'
     )

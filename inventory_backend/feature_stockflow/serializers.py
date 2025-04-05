@@ -35,7 +35,7 @@ class WarehouseItemListSerializer(serializers.Serializer):
     expiry_date = serializers.DateField()
     quantity = serializers.IntegerField()
     content_id = serializers.CharField()
-    warehouse_loc = serializers.CharField()
+    warehouse_location = serializers.CharField()
     
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:

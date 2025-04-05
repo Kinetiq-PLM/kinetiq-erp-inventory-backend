@@ -13,16 +13,17 @@ class WarehouseMovementList(generics.ListAPIView):
 class WarehouseItemsList(generics.ListCreateAPIView):
     def get_queryset(self):
         return DocumentItem.objects.filter(
-            warehouse_loc__isnull=False  
+            warehouse_id__isnull=False  
         ).select_related(
-            "asset_id",
+            "item_id__asset_id",
             "material_id",
-            "productdocu_id__product_id"
+            "productdocu_id__product_id",
+            "warehouse_id",
         ).annotate(
             
             type=Case(
                 When(material_id__isnull=False, then=Value("Raw Material")),
-                When(asset_id__isnull=False, then=Value("Asset")),
+                When(item_id__isnull=False, then=Value("Asset")),
                 When(productdocu_id__isnull=False, then=Value("Product")),
                 default=Value("Unknown"),
                 output_field=CharField()
@@ -30,7 +31,7 @@ class WarehouseItemsList(generics.ListCreateAPIView):
             
             item_name=Case(
                 When(material_id__isnull=False, then=F("material_id__material_name")),
-                When(asset_id__isnull=False, then=F("asset_id__asset_name")),
+                When(item_id__isnull=False, then=F("item_id__asset_id__asset_name")),
                 When(productdocu_id__isnull=False, then=F("productdocu_id__product_id__product_name")),
                 default=Value("Unknown"),
                 output_field=CharField()
@@ -67,7 +68,7 @@ class WarehouseItemsList(generics.ListCreateAPIView):
             "identifier",
             "expiry_date",
             "quantity",
-            "warehouse_loc",
+            "warehouse_id__warehouse_location",
             
         )
     serializer_class = WarehouseItemListSerializer
