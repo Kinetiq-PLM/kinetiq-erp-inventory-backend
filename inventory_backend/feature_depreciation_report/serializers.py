@@ -5,8 +5,8 @@ from .models import DeprecationReport, DocumentItem,  Asset, RawMaterial, produc
 class AssetsDeprecationReportSerializer(serializers.Serializer):
     deprecation_report_id = serializers.CharField()
     content_id = serializers.CharField()  
-    asset_id = serializers.CharField(source="content_id__asset_id")
-    asset_name = serializers.CharField(source="content_id__asset_id__asset_name")
+    asset_id = serializers.CharField(source="content_id__item_id__asset_id")
+    asset_name = serializers.CharField(source="content_id__item_id__asset_id__asset_name")
     status = serializers.CharField()
     reported_date = serializers.DateTimeField()
     quantity = serializers.IntegerField(source="content_id__quantity")

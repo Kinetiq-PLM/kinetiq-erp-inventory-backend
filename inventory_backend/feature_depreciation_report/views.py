@@ -32,17 +32,17 @@ class AssetsDeprecationReportList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return DeprecationReport.objects.filter(
-            content_id__asset_id__isnull=False  
+            content_id__item_id__isnull=False  
         ).select_related(
-            "content_id__asset_id"
+            "content_id__item_id__asset_id",
         ).values(
             "deprecation_report_id",
             "status",
             "reported_date",
             "content_id",          
             "content_id__quantity",
-            "content_id__asset_id",  
-            "content_id__asset_id__asset_name",
+            "content_id__item_id__asset_id",  
+            "content_id__item_id__asset_id__asset_name",
         )
 
 

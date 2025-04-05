@@ -19,6 +19,25 @@ class Asset(models.Model):
     class Meta:
         db_table = 'admin"."assets'
         managed = False
+
+
+class item_master_data(models.Model):
+    item_id = models.CharField(
+        db_column='item_id',
+        primary_key=True,
+        max_length=255
+    )
+
+    asset_id = models.ForeignKey(
+        Asset,
+        db_column='asset_id',
+        on_delete=models.CASCADE,
+        null=True,
+    )
+
+    class Meta:
+        db_table = 'admin"."item_master_data'  
+        managed = False  
         
 
 # Dummy Model for Raw Material (to be replaced with actual model)
@@ -96,9 +115,9 @@ class DocumentItem(models.Model):
         max_length=255
     )
 
-    asset_id = models.ForeignKey(
-        Asset,
-        db_column='asset_id',
+    item_id = models.ForeignKey(
+        item_master_data,
+        db_column='item_id',
         on_delete=models.CASCADE,
         null=True,
         blank=True
