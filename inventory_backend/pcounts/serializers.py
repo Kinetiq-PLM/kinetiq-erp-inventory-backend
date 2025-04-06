@@ -7,6 +7,7 @@ from django.db import connections
 logger = logging.getLogger(__name__)
 
 class CyclicCountSerializer(serializers.ModelSerializer):
+    inventory_count_id = serializers.CharField(read_only=True)
     product_name = serializers.SerializerMethodField()
     item_id = serializers.SerializerMethodField()
     employee = serializers.SerializerMethodField()
@@ -16,7 +17,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         model = CyclicCount
         fields = [
             "inventory_count_id",
-            "product_data_id",  # Changed from product_data
+            "product_data_id",   
             "item_onhand",
             "item_actually_counted",
             "difference_in_qty",
@@ -37,7 +38,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         logger.info(f"Direct inventory_item_id from cyclic count: {inventory_item_id}")
         
         if not inventory_item_id:
-            logger.error(f"❌ Missing inventory_item_id for {obj.inventory_count_id}")
+            logger.error(f" Missing inventory_item_id for {obj.inventory_count_id}")
             return "No Inventory Item ID"
             
         # First try to find ProductData with this inventory_item_id
@@ -54,32 +55,32 @@ class CyclicCountSerializer(serializers.ModelSerializer):
                     try:
                         direct_product_data = ProductData.objects.get(product_data_id=row[0])
                     except ProductData.DoesNotExist:
-                        logger.error(f"❌ ProductData with ID {row[0]} exists in DB but not in ORM")
+                        logger.error(f" ProductData with ID {row[0]} exists in DB but not in ORM")
                 else:
-                    logger.error(f"❌ No product_data found for inventory_item_id={inventory_item_id}")
+                    logger.error(f" No product_data found for inventory_item_id={inventory_item_id}")
         except Exception as e:
-            logger.error(f"❌ Error querying product_data: {str(e)}")
+            logger.error(f"Error querying product_data: {str(e)}")
             
         # Try to fetch the full chain to get the product name
         try:
             # Get the inventory item
             inventory_item = InventoryItem.objects.filter(inventory_item_id=inventory_item_id).first()
             if not inventory_item:
-                logger.error(f"❌ No inventory_item found with ID={inventory_item_id}")
+                logger.error(f" No inventory_item found with ID={inventory_item_id}")
                 return "No Inventory Item"
                 
             logger.info(f"✓ Found inventory_item: {inventory_item.inventory_item_id}")
             
             # Get the item master data
             if not inventory_item.item:
-                logger.error(f"❌ Missing item master data for inventory_item {inventory_item.inventory_item_id}")
+                logger.error(f" Missing item master data for inventory_item {inventory_item.inventory_item_id}")
                 return "No Item Master Data"
                 
             logger.info(f"✓ Found item master data: {inventory_item.item.item_id}")
             
             # Get the product
             if not inventory_item.item.product:
-                logger.error(f"❌ Missing product for item {inventory_item.item.item_id}")
+                logger.error(f" Missing product for item {inventory_item.item.item_id}")
                 return "No Product"
                 
             product_name = inventory_item.item.product.product_name
@@ -87,10 +88,10 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             return product_name
             
         except AttributeError as e:
-            logger.error(f"❌ AttributeError in relationship chain: {str(e)}")
+            logger.error(f" AttributeError in relationship chain: {str(e)}")
             return f"Error: AttributeError - {str(e)}"
         except Exception as e:
-            logger.error(f"❌ Error getting product_name: {str(e)}")
+            logger.error(f" Error getting product_name: {str(e)}")
             logger.error(traceback.format_exc())
             return f"Error: {str(e)}"
 

@@ -272,10 +272,12 @@ class Employee(models.Model):
 
 
 STATUS_CHOICES = [
-    ('Verified', 'Verified'),
-    ('Pending', 'Pending'),
-    ('In-review', 'In-review'),
+    ('Completed', 'Completed'),
+    ('In Progress', 'In Progress'),
+    ('Open', 'Open'),
+    ('Closed', 'Closed'),
 ]
+
 
 
 class CyclicCount(models.Model):
