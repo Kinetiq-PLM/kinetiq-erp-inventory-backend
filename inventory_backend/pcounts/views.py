@@ -8,14 +8,11 @@ logger = logging.getLogger(__name__)
 
 class CyclicCountList(generics.ListAPIView):
     serializer_class = CyclicCountSerializer
-
+    
     def get_queryset(self):
-        queryset = CyclicCount.objects.select_related(
-            'product_data__inventory_item__item__product',
-            'employee'
-        ).all()
+        queryset = CyclicCount.objects.select_related('employee').all()
         return queryset
-
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)

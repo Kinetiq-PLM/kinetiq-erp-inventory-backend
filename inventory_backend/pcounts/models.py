@@ -226,17 +226,18 @@ class InventoryItem(models.Model):
 
 class ProductData(models.Model):
     product_data_id = models.CharField(
-        db_column='item_md_id',
+        db_column='item_md_id',  #
         primary_key=True,
         max_length=50
     )
   
     inventory_item = models.ForeignKey(
-        InventoryItem,
-        db_column='inventory_item_id',
+        'InventoryItem',  
+        db_column='inventory_item_id',  
         null=True,
         blank=True,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='product_data_items'  
     )
 
     class Meta:
@@ -284,13 +285,22 @@ class CyclicCount(models.Model):
         max_length=255
     )
     
-    product_data = models.ForeignKey(
-        ProductData,
-        db_column='inventory_item_id',
-        on_delete=models.CASCADE,
+    product_data_id = models.CharField(
+        db_column='inventory_item_id', 
+        max_length=255,
         null=True,
         blank=True
     )
+    
+    @property
+    def product_data(self):
+        try:
+            return ProductData.objects.filter(product_data_id=self.product_data_id).first() or \
+                   ProductData.objects.filter(inventory_item__inventory_item_id=self.product_data_id).first()
+        except Exception:
+            return None
+    
+
     item_onhand = models.IntegerField(
         db_column='item_onhand',
         null=True,
