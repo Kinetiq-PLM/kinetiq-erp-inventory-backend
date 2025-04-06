@@ -56,31 +56,6 @@ MIDDLEWARE = [
 
     "corsheaders.middleware.CorsMiddleware"
 ]
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'level': 'DEBUG',  # Set this to DEBUG to capture all logs
-        },
-    },
-    'loggers': {
-        # This will capture logs from Django
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        # Add your module's logger here if necessary
-        'pcounts': {  # Replace with the name of your app or module
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
-
 
 CORS_ALLOW_ALL_ORIGINS = True
 
