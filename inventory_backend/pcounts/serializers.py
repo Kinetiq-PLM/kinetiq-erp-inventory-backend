@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 
 class CyclicCountSerializer(serializers.ModelSerializer):
     inventory_count_id = serializers.CharField(read_only=True)
+    inventory_item_id = serializers.CharField(write_only=True, required=False)  
+    employee_id = serializers.CharField(write_only=True, required=False)
     product_name = serializers.SerializerMethodField()
     item_id = serializers.SerializerMethodField()
     employee = serializers.SerializerMethodField()
@@ -18,6 +20,8 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         fields = [
             "inventory_count_id",
             "product_data_id",   
+            "inventory_item_id",
+            "employee_id",
             "item_onhand",
             "item_actually_counted",
             "difference_in_qty",
@@ -29,6 +33,20 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "product_name",
             "debug_info"
         ]
+
+    def create(self, validated_data):
+        if 'inventory_item_id' in validated_data:
+            validated_data['product_data_id'] = validated_data.pop('inventory_item_id')
+            
+        if 'employee_id' in validated_data:
+            employee_id = validated_data.pop('employee_id')
+            try:
+                employee = Employee.objects.get(employee_id=employee_id)
+                validated_data['employee'] = employee
+            except Employee.DoesNotExist:
+                pass
+                
+        return super().create(validated_data)
 
     def get_product_name(self, obj):
         logger.info(f"Getting product_name for count_id: {obj.inventory_count_id}")
