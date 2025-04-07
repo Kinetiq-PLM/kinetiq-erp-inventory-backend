@@ -275,3 +275,21 @@ class WarehouseMovement(models.Model):
 
     def __str__(self):
         return f"{self.movement_id} - {self.movement_type}"
+
+
+
+class InventoryItemData(models.Model):
+    inventory_item_id = models.CharField(max_length=255, primary_key=True)  
+    item_type = models.CharField(max_length=50)
+    item_name = models.CharField(max_length=255)
+    item_management = models.CharField(max_length=50)
+    item_management_id = models.CharField(max_length=255)
+    current_quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    expiry = models.DateField(null=True, blank=True)  
+    
+    class Meta:
+        managed = False  
+        db_table = 'inventory"."vw_inventory_item_data' 
+        
+    def __str__(self):
+        return self.item_name
