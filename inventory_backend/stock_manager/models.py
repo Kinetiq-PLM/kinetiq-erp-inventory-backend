@@ -265,41 +265,48 @@ class InventoryItemData(models.Model):
         primary_key=True,
         max_length=255
     )
-    admin_item = models.OneToOneField(
-        ItemMasterData,
-        db_column='item_id',  
-        to_field='item_id',
-        on_delete=models.CASCADE,
-        related_name='inventory_item'
-    )
-    minimum_threshold = models.IntegerField(
-        db_column='minimum_threshold',
-        null=True,
-        blank=True,
-        default=0
-    )
-    maximum_threshold = models.IntegerField(
-        db_column='maximum_threshold',
-        null=True,
-        blank=True,
-        default=0
-    )
-    total_stock = models.IntegerField(
-        db_column='total_stock',
-        null=True,
-        blank=True,
-        default=0
-    )
-    available_stock = models.IntegerField(
-        db_column='available_stock',
-        null=True,
-        blank=True,
-        default=0
-    )
-    last_update = models.DateTimeField(
-        db_column='last_update',
+    serial_id = models.CharField(
+        db_column='serial_id',
+        max_length=255,
         null=True,
         blank=True
+    )
+    productdocu_id = models.CharField(
+        db_column='productdocu_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    material = models.ForeignKey(
+        RawMaterial,
+        db_column='material_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    asset = models.ForeignKey(
+        Asset,
+        db_column='asset_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    item_type = models.CharField(
+        db_column='item_type',
+        max_length=50
+    )
+    current_quantity = models.IntegerField(
+        db_column='current_quantity'
+    )
+    warehouse_id = models.CharField(
+        db_column='warehouse_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    date_created = models.DateTimeField(
+        db_column='date_created',
+        auto_now_add=True
     )
 
     class Meta:
@@ -307,38 +314,35 @@ class InventoryItemData(models.Model):
         db_table = 'inventory_item'
 
     def __str__(self):
-        return f"ItemData for {self.admin_item.item_id}"
+        return f"Inventory Item: {self.inventory_item_id}"
 
 
-class InventoryProductData(models.Model):
-    item_md_id = models.CharField(
-        db_column='item_md_id',
+class InventoryItemThreshold(models.Model):
+    inventory_item_threshold_id = models.CharField(
+        db_column='inventory_item_threshold_id',
         primary_key=True,
         max_length=255
     )
-    inventory_item = models.ForeignKey(
-        InventoryItemData,
-        db_column='inventory_item_id',  
-        to_field='inventory_item_id',  
+    item = models.ForeignKey(
+        ItemMasterData,
+        db_column='item_id',  
+        to_field='item_id',  
         on_delete=models.CASCADE,
-        related_name='product_data' 
+        related_name='inventory_thresholds'
     )
-    stock_on_order = models.IntegerField(
-        db_column='stock_on_order',
-        null=True,
-        blank=True,
-        default=0
+    minimum_threshold = models.IntegerField(
+        db_column='minimum_threshold'
     )
-    stock_committed = models.IntegerField(
-        db_column='stock_committed',
-        null=True,
-        blank=True,
-        default=0
+    maximum_threshold = models.IntegerField(
+        db_column='maximum_threshold'
     )
 
     class Meta:
         managed = False
-        db_table = 'inventory_product_data'  
+        db_table = 'inventory_item_threshold'  
+
+    def __str__(self):
+        return f"Threshold for {self.item.item_id}"
 
 class Purchase_requests(models.Model):
     request_id = models.CharField(

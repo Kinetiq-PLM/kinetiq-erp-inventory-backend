@@ -1,12 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import (
-    Product, ItemMasterData, InventoryItemData, InventoryProductData,
+    Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
     Asset, RawMaterial, Purchase_requests
 )
 from .serializers import (
     ProductsSerializer, AdminItemMasterDataSerializer,
-    InventoryItemDataSerializer, InventoryProductDataSerializer,
+    InventoryItemDataSerializer, InventoryItemThresholdSerializer,
     AssetsSerializer, RawMaterialsSerializer,
     PurchaseRequestSerializer
 )
@@ -23,9 +23,9 @@ class InventoryItemDataViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = InventoryItemData.objects.all()
     serializer_class = InventoryItemDataSerializer
 
-class InventoryProductDataViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = InventoryProductData.objects.all()
-    serializer_class = InventoryProductDataSerializer
+class InventoryItemThresholdViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = InventoryItemThreshold.objects.all()
+    serializer_class = InventoryItemThresholdSerializer
 
 class AssetsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asset.objects.all()

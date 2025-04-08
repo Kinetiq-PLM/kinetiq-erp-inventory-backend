@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Product, ItemMasterData, InventoryItemData, InventoryProductData,
+    Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
     Asset, RawMaterial, Purchase_requests
 )
 import logging
@@ -19,33 +19,36 @@ class AdminItemMasterDataSerializer(serializers.ModelSerializer):
 
 
 class InventoryItemDataSerializer(serializers.ModelSerializer):
-    item_id = serializers.CharField(source='admin_item.item_id', read_only=True)
+    material_name = serializers.CharField(source='material.material_name', read_only=True)
+    asset_name = serializers.CharField(source='asset.asset_name', read_only=True)
 
     class Meta:
         model = InventoryItemData
         fields = [
             'inventory_item_id',
-            'item_id',
-            'minimum_threshold',
-            'maximum_threshold',
-            'total_stock',
-            'available_stock',
-            'last_update'
+            'serial_id',
+            'productdocu_id',
+            'material',
+            'material_name',
+            'asset',
+            'asset_name',
+            'item_type',
+            'current_quantity',
+            'warehouse_id',
+            'date_created'
         ]
 
 
-class InventoryProductDataSerializer(serializers.ModelSerializer):
-    inventory_item_id = serializers.CharField(source='inventory_item.inventory_item_id', read_only=True)
-    item_id = serializers.CharField(source='inventory_item.admin_item.item_id', read_only=True)
+class InventoryItemThresholdSerializer(serializers.ModelSerializer):
+    item_id = serializers.CharField(source='item.item_id', read_only=True)
 
     class Meta:
-        model = InventoryProductData
+        model = InventoryItemThreshold
         fields = [
-            'item_md_id',
-            'inventory_item_id',
+            'inventory_item_threshold_id',
             'item_id',
-            'stock_on_order',
-            'stock_committed'
+            'minimum_threshold',
+            'maximum_threshold'
         ]
 
 
@@ -91,16 +94,28 @@ class ProductsSerializer(serializers.ModelSerializer):
             item = obj.itemmasterdata_set.first()
             if not item:
                 return {}
-            inventory_item = InventoryItemData.objects.filter(admin_item=item).first()
-            data = {}
-            if inventory_item:
-                data["item_id"] = inventory_item.admin_item.item_id
-                data["total_stock"] = inventory_item.total_stock
-                data["available_stock"] = inventory_item.available_stock
-                product_data = InventoryProductData.objects.filter(inventory_item=inventory_item).first()
-                if product_data:
-                    data["stock_on_order"] = product_data.stock_on_order
-                    data["stock_committed"] = product_data.stock_committed
+                
+            # Get threshold data
+            threshold = InventoryItemThreshold.objects.filter(item=item).first()
+            threshold_data = {}
+            if threshold:
+                threshold_data = {
+                    'minimum_threshold': threshold.minimum_threshold,
+                    'maximum_threshold': threshold.maximum_threshold
+                }
+            
+            # Get inventory items related to this product
+            inventory_items = InventoryItemData.objects.filter(material__product_id=obj.product_id)
+            
+            # Calculate total quantity
+            total_quantity = sum(item.current_quantity for item in inventory_items)
+            
+            data = {
+                'item_id': item.item_id,
+                'current_quantity': total_quantity,
+                **threshold_data
+            }
+            
             return data
         except Exception as e:
             logger.error(f"Error merging inventory data for product {obj.product_id}: {str(e)}")
@@ -144,16 +159,26 @@ class AssetsSerializer(serializers.ModelSerializer):
         if not item:
             return {}
         try:
-            inventory_item = InventoryItemData.objects.filter(admin_item=item).first()
-            if not inventory_item:
-                return {}
+            # Get threshold data
+            threshold = InventoryItemThreshold.objects.filter(item=item).first()
+            threshold_data = {}
+            if threshold:
+                threshold_data = {
+                    'minimum_threshold': threshold.minimum_threshold,
+                    'maximum_threshold': threshold.maximum_threshold
+                }
+            
+            # Get inventory items related to this asset
+            inventory_items = InventoryItemData.objects.filter(asset=obj)
+            
+            # Calculate total quantity
+            total_quantity = sum(item.current_quantity for item in inventory_items)
+            
             return {
-                'item_id': inventory_item.admin_item.item_id,
-                'total_stock': inventory_item.total_stock,
-                'available_stock': inventory_item.available_stock,
-                'minimum_threshold': inventory_item.minimum_threshold,
-                'maximum_threshold': inventory_item.maximum_threshold,
-                'last_update': inventory_item.last_update
+                'item_id': item.item_id,
+                'current_quantity': total_quantity,
+                **threshold_data,
+                'last_update': inventory_items[0].date_created if inventory_items else None
             }
         except Exception as e:
             logger.error(f"Error getting inventory data for asset {obj.asset_id}: {str(e)}")
@@ -197,16 +222,26 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
         if not item:
             return {}
         try:
-            inventory_item = InventoryItemData.objects.filter(admin_item=item).first()
-            if not inventory_item:
-                return {}
+            # Get threshold data
+            threshold = InventoryItemThreshold.objects.filter(item=item).first()
+            threshold_data = {}
+            if threshold:
+                threshold_data = {
+                    'minimum_threshold': threshold.minimum_threshold,
+                    'maximum_threshold': threshold.maximum_threshold
+                }
+            
+            # Get inventory items related to this material
+            inventory_items = InventoryItemData.objects.filter(material=obj)
+            
+            # Calculate total quantity
+            total_quantity = sum(item.current_quantity for item in inventory_items)
+            
             return {
-                'item_id': inventory_item.admin_item.item_id,
-                'total_stock': inventory_item.total_stock,
-                'available_stock': inventory_item.available_stock,
-                'minimum_threshold': inventory_item.minimum_threshold,
-                'maximum_threshold': inventory_item.maximum_threshold,
-                'last_update': inventory_item.last_update
+                'item_id': item.item_id,
+                'current_quantity': total_quantity,
+                **threshold_data,
+                'last_update': inventory_items[0].date_created if inventory_items else None
             }
         except Exception as e:
             logger.error(f"Error getting inventory data for material {obj.material_id}: {str(e)}")

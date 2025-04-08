@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     ItemMasterData,
     InventoryItemData,
-    InventoryProductData,
+    InventoryItemThreshold,
     Product,
     Asset,
     RawMaterial,
@@ -11,7 +11,7 @@ from .models import (
 
 admin.site.register(ItemMasterData)
 admin.site.register(InventoryItemData)
-admin.site.register(InventoryProductData)
+admin.site.register(InventoryItemThreshold)
 admin.site.register(Product)
 admin.site.register(Asset)
 admin.site.register(RawMaterial)
