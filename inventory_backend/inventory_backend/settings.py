@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+
+    "stock_manager",
     "pcounts",
     "rest_framework",
     "corsheaders",    
@@ -101,10 +103,11 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
-            'options': '-c search_path=public,inventory,human_resources,admin'
+            'options': '-c search_path=public,purchasing,inventory,human_resources,admin'
         }
     }
 }
+
 
 
 # Password validation
