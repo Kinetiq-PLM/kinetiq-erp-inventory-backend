@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    "api",
+    "pcounts",
     "rest_framework",
     "corsheaders",    
     "django_cognito_jwt"
@@ -56,7 +56,6 @@ MIDDLEWARE = [
 
     "corsheaders.middleware.CorsMiddleware"
 ]
-
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -95,8 +94,15 @@ WSGI_APPLICATION = 'inventory_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Kinetiq-DB-Schema',
+        'USER': 'erp_user',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=public,inventory,human_resources,admin'
+        }
     }
 }
 
