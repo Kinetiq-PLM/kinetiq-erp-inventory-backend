@@ -284,8 +284,11 @@ class InventoryItemData(models.Model):
     item_name = models.CharField(max_length=255)
     item_management = models.CharField(max_length=50)
     item_management_id = models.CharField(max_length=255)
-    current_quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    current_quantity = models.IntegerField()
+    shelf_life = models.CharField(max_length=50)
     expiry = models.DateField(null=True, blank=True)  
+    warehouse_location = models.CharField(max_length=255, null=True, blank=True)
+    
     
     class Meta:
         managed = False  

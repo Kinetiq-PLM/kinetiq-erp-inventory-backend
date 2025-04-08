@@ -52,7 +52,9 @@ class InventoryItemDataSerializer(serializers.ModelSerializer):
             'item_management',
             'item_management_id',
             'current_quantity',
+            'shelf_life',
             'expiry',
             'warehouse_location'
         ]
+
         read_only_fields = fields  # Since it's a view, all fields are read-only

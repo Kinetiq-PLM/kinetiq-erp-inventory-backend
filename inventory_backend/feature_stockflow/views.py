@@ -9,9 +9,18 @@ class WarehouseMovementList(generics.ListAPIView):
     queryset = WarehouseMovement.objects.all()
     serializer_class = WarehouseMovementSerializer
 
+# Warehouse Table
+class WarehouseList(generics.ListAPIView):
+    queryset = Warehouse.objects.all()
+    serializer_class = WarehouseSerializer
+
+# View for Each Item Data in Inventory 
 class InventoryItemDataList(generics.ListAPIView):
     queryset = InventoryItemData.objects.all()
     serializer_class = InventoryItemDataSerializer
+
+
+# OLD LOGIC (FOR BACKUP)
 
 # class WarehouseItemsList(generics.ListCreateAPIView):
 #     def get_queryset(self):
@@ -75,9 +84,3 @@ class InventoryItemDataList(generics.ListAPIView):
             
 #         )
 #     serializer_class = WarehouseItemListSerializer
-
-class WarehouseList(generics.ListAPIView):
-    queryset = Warehouse.objects.all()
-    serializer_class = WarehouseSerializer
-
-
