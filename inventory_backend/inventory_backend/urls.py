@@ -24,5 +24,6 @@ def home_view(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('stock_manager.urls')),
+    path('api/', include('pcounts.urls')),
     path('', home_view, name='home'),
 ]

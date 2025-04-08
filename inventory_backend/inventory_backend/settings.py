@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+
     "stock_manager",
+    "pcounts",
     "rest_framework",
     "corsheaders",    
     "django_cognito_jwt"
@@ -56,7 +58,6 @@ MIDDLEWARE = [
 
     "corsheaders.middleware.CorsMiddleware"
 ]
-
 
 CORS_ALLOW_ALL_ORIGINS = True
 
