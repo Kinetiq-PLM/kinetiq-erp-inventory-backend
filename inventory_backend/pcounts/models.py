@@ -1,6 +1,5 @@
 from django.db import models
 
-# Product model based on the products table in the diagram
 class Product(models.Model):
     product_id = models.CharField(
         db_column='product_id',
@@ -23,56 +22,16 @@ class Product(models.Model):
         null=True,
         blank=True
     )
-    stock_level = models.IntegerField(
-        db_column='stock_level',
-        null=True,
-        blank=True
-    )
-    warranty_period = models.IntegerField(
-        db_column='warranty_period',
-        null=True,
-        blank=True
-    )
-    policy_id = models.CharField(
-        db_column='policy_id',
-        max_length=255,
-        null=True,
-        blank=True
-    )
-    batch_no = models.CharField(
-        db_column='batch_no',
-        max_length=255,
-        null=True,
-        blank=True
-    )
-    item_status = models.CharField(
-        db_column='item_status',
-        max_length=50,
-        null=True,
-        blank=True
-    )
-    content_id = models.CharField(
-        db_column='content_id',
-        max_length=255,
-        null=True,
-        blank=True
-    )
-    unit_of_measure = models.CharField(
-        db_column='unit_of_measure',
-        max_length=50,
-        null=True,
-        blank=True
-    )
-
+    
     class Meta:
         managed = False
         db_table = 'products'
+        app_label = 'pcounts' 
 
     def __str__(self):
         return self.product_name
 
 
-# Item Master Data model
 class ItemMasterData(models.Model):
     item_id = models.CharField(
         db_column='item_id',
@@ -86,7 +45,7 @@ class ItemMasterData(models.Model):
         blank=True
     )
     product = models.ForeignKey(
-        Product,
+        'Product',
         db_column='product_id',
         on_delete=models.CASCADE,
         null=True,
@@ -181,7 +140,62 @@ class InventoryItem(models.Model):
         primary_key=True,
         max_length=255
     )
-    # Now links to ItemMasterData instead of directly to Products
+    serial_id = models.CharField(
+        db_column='serial_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    productdocu_id = models.CharField(
+        db_column='productdocu_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    material_id = models.CharField(
+        db_column='material_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    asset_id = models.CharField(
+        db_column='asset_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    item_type = models.CharField(
+        db_column='item_type',
+        max_length=50
+    )
+    current_quantity = models.IntegerField(
+        db_column='current_quantity'
+    )
+    warehouse_id = models.CharField(
+        db_column='warehouse_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    date_created = models.DateTimeField(
+        db_column='date_created',
+        editable=False
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'inventory_item'
+
+    def __str__(self):
+        return self.inventory_item_id
+
+
+class InventoryItemThreshold(models.Model):
+    inventory_item_threshold_id = models.CharField(
+        db_column='inventory_item_threshold_id',
+        primary_key=True,
+        max_length=50
+    )
     item = models.ForeignKey(
         ItemMasterData,
         db_column='item_id',
@@ -190,62 +204,20 @@ class InventoryItem(models.Model):
         blank=True
     )
     minimum_threshold = models.IntegerField(
-        db_column='minimum_threshold',
-        default=0
+        db_column='minimum_threshold'
     )
     maximum_threshold = models.IntegerField(
-        db_column='maximum_threshold',
-        default=0
-    )
-    total_stock = models.IntegerField(
-        db_column='total_stock',
-        default=0
-    )
-    available_stock = models.IntegerField(
-        db_column='available_stock',
-        default=0
-    )
-    last_update = models.DateTimeField(
-        db_column='last_update',
-        auto_now_add=True
+        db_column='maximum_threshold'
     )
 
     class Meta:
         managed = False
-        db_table = 'inventory_item'
+        db_table = 'inventory_item_threshold'
 
     def __str__(self):
-        # Now gets product name through the item_master_data relationship
-        if self.item and self.item.product:
-            return self.item.product.product_name
-        elif self.item and self.item.item_name:
-            return self.item.item_name
-        else:
-            return "No Product"
-
-
-class ProductData(models.Model):
-    product_data_id = models.CharField(
-        db_column='item_md_id',  #
-        primary_key=True,
-        max_length=50
-    )
-  
-    inventory_item = models.ForeignKey(
-        'InventoryItem',  
-        db_column='inventory_item_id',  
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name='product_data_items'  
-    )
-
-    class Meta:
-        managed = False
-        db_table = 'inventory_product_data'
-
-    def __str__(self):
-        return self.product_data_id
+        if self.item:
+            return f"Thresholds for {self.item.item_id} ({self.item.item_name or 'No Name'})"
+        return self.inventory_item_threshold_id
 
 
 class Employee(models.Model):
@@ -264,7 +236,7 @@ class Employee(models.Model):
     )
 
     class Meta:
-        managed = False 
+        managed = False
         db_table = 'employees'
 
     def __str__(self):
@@ -279,30 +251,19 @@ STATUS_CHOICES = [
 ]
 
 
-
 class CyclicCount(models.Model):
     inventory_count_id = models.CharField(
         db_column='inventory_count_id',
         primary_key=True,
         max_length=255
     )
-    
-    product_data_id = models.CharField(
-        db_column='inventory_item_id', 
-        max_length=255,
+    inventory_item = models.ForeignKey(
+        InventoryItem,
+        db_column='inventory_item_id',
+        on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
-    
-    @property
-    def product_data(self):
-        try:
-            return ProductData.objects.filter(product_data_id=self.product_data_id).first() or \
-                   ProductData.objects.filter(inventory_item__inventory_item_id=self.product_data_id).first()
-        except Exception:
-            return None
-    
-
     item_onhand = models.IntegerField(
         db_column='item_onhand',
         null=True,
@@ -347,4 +308,5 @@ class CyclicCount(models.Model):
         db_table = 'inventory_cyclic_counts'
 
     def __str__(self):
-        return f"{self.inventory_count_id} - {self.status}"
+        item_name = self.inventory_item.inventory_item_id if self.inventory_item else "No Item"
+        return f"{self.inventory_count_id} - {item_name} - {self.status}"

@@ -10,7 +10,7 @@ class CyclicCountList(generics.ListCreateAPIView):
     serializer_class = CyclicCountSerializer
 
     def get_queryset(self):
-        return CyclicCount.objects.select_related('employee').all()
+        return CyclicCount.objects.select_related('employee', 'inventory_item').all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -24,6 +24,4 @@ class CyclicCountList(generics.ListCreateAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
-        for item in data:
-            logger.info(f"Item: {item['inventory_count_id']}, Product Name: {item.get('product_name')}")
         return Response(data)
