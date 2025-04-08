@@ -40,8 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
 
+    "feature_stockflow",
     "stock_manager",
     "pcounts",
+
     "rest_framework",
     "corsheaders",    
     "django_cognito_jwt"
@@ -98,8 +100,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Kinetiq-DB-Schema',
-        'USER': 'erp_user',
-        'PASSWORD': '123',
+        'USER': 'postgres',
+        'PASSWORD': 'tris123',
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
