@@ -19,7 +19,7 @@ class ProductDeprecationReportList(generics.ListCreateAPIView):
             "deprecation_report_id",
             "status",
             "reported_date",
-            "content_id",
+            "inventory_item_id",
             "inventory_item_id__current_quantity",
             "inventory_item_id__productdocu_id",  
             "inventory_item_id__expiry",

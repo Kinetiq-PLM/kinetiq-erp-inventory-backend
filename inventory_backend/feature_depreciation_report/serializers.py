@@ -4,7 +4,6 @@ from .models import DeprecationReport, DocumentItem,  Asset, RawMaterial, produc
 
 class AssetsDeprecationReportSerializer(serializers.Serializer):
     deprecation_report_id = serializers.CharField()
-    content_id = serializers.CharField()  
     asset_id = serializers.CharField(source="inventory_item_id__asset_id")
     asset_name = serializers.CharField(source="inventory_item_id__asset_id__asset_name")
     status = serializers.CharField()
@@ -14,7 +13,6 @@ class AssetsDeprecationReportSerializer(serializers.Serializer):
 
 class RawMatDeprecationReportSerializer(serializers.Serializer):
     deprecation_report_id = serializers.CharField()
-    content_id = serializers.CharField()  
     material_id = serializers.CharField(source="inventory_item_id__material_id")
     material_name = serializers.CharField(source="inventory_item_id__material_id__material_name")
     status = serializers.CharField()
@@ -25,8 +23,7 @@ class ProductDeprecationReportSerializer(serializers.Serializer):
     deprecation_report_id = serializers.CharField()
     status = serializers.CharField()
     reported_date = serializers.DateTimeField()
-    content_id = serializers.CharField()  
     productdocu_id = serializers.CharField(source="inventory_item_id__productdocu_id")
     product_name = serializers.CharField(source="inventory_item_id__productdocu_id__product_id__product_name")
-    expiry_date = serializers.DateField(source="inventory_item_id__expiry")
+    expiry = serializers.DateField(source="inventory_item_id__expiry")
     quantity = serializers.IntegerField(source="inventory_item_id__current_quantity")
