@@ -19,6 +19,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('stock_manager.urls')),
+    path('api/', include('pcounts.urls')),
     path('api/', include('feature_stockflow.urls')),
     # path('', home_view, name='home'),
+
 ]

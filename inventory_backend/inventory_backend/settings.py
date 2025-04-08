@@ -39,8 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    "pcounts",
+
     "feature_stockflow",
+    "stock_manager",
+    "pcounts",
+
     "rest_framework",
     "corsheaders",    
     "django_cognito_jwt"
@@ -57,7 +60,6 @@ MIDDLEWARE = [
 
     "corsheaders.middleware.CorsMiddleware"
 ]
-
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -103,10 +105,11 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
-            'options': '-c search_path=public,inventory,human_resources,admin'
+            'options': '-c search_path=public,purchasing,inventory,human_resources,admin'
         }
     }
 }
+
 
 
 # Password validation
