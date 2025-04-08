@@ -11,19 +11,19 @@ class ProductDeprecationReportList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return DeprecationReport.objects.filter(
-            content_id__productdocu_id__isnull=False  
+            inventory_item_id__productdocu_id__isnull=False  
         ).select_related(
-            "content_id__productdocu_id",
-            "productdocu_id__product_id",
+            "inventory_item_id",
+            "inventory_item_id__productdocu_id__product_id"
         ).values(
             "deprecation_report_id",
             "status",
             "reported_date",
             "content_id",
-            "content_id__quantity",
-            "content_id__productdocu_id",  
-            "content_id__productdocu_id__expiry_date",
-            "content_id__productdocu_id__product_id__product_name",
+            "inventory_item_id__current_quantity",
+            "inventory_item_id__productdocu_id",  
+            "inventory_item_id__expiry",
+            "inventory_item_id__productdocu_id__product_id__product_name",
         )
 
 
@@ -32,17 +32,18 @@ class AssetsDeprecationReportList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return DeprecationReport.objects.filter(
-            content_id__item_id__isnull=False  
+            inventory_item_id__asset_id__isnull=False  
         ).select_related(
-            "content_id__item_id__asset_id",
+            "inventory_item_id",
+            "inventory_item_id__asset_id",
         ).values(
             "deprecation_report_id",
             "status",
             "reported_date",
-            "content_id",          
-            "content_id__quantity",
-            "content_id__item_id__asset_id",  
-            "content_id__item_id__asset_id__asset_name",
+            "inventory_item_id",          
+            "inventory_item_id__current_quantity",
+            "inventory_item_id__asset_id",  
+            "inventory_item_id__asset_id__asset_name",
         )
 
 
@@ -51,16 +52,17 @@ class RawMatDeprecationReportList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return DeprecationReport.objects.filter(
-            content_id__material_id__isnull=False  # Only include records where material_id is NOT NULL
+            inventory_item_id__material_id__isnull=False  # Only include records where material_id is NOT NULL
         ).select_related(
-            "content_id__material_id",
-            "m"
+            "inventory_item_id",
+            "inventory_item_id__material_id",
+           
         ).values(
             "deprecation_report_id",
             "status",
             "reported_date",
-            "content_id",
-            "content_id__quantity",
-            "content_id__material_id",
-            "content_id__material_id__material_name", 
+            "inventory_item_id",
+            "inventory_item_id__current_quantity",
+            "inventory_item_id__material_id",
+            "inventory_item_id__material_id__material_name", 
         )
