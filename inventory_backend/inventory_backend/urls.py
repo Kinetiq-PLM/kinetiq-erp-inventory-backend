@@ -20,13 +20,16 @@ from django.http import HttpResponse
 
 def home_view(request):
     return HttpResponse("Welcome to the Home Page!")
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('feature_depreciation_report.urls')),
     path('api/', include('stock_manager.urls')),
     path('api/', include('pcounts.urls')),
-    path('', home_view, name='home'),
+    path('api/', include('feature_stockflow.urls')),
+    # path('', home_view, name='home'),
+
 ]
 
 #  path('api/', include('feature_stockflow.urls')),
