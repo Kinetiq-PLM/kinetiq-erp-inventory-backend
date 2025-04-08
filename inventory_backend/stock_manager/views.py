@@ -2,13 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import (
     Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
-    Asset, RawMaterial, Purchase_requests
+    Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation
 )
 from .serializers import (
     ProductsSerializer, AdminItemMasterDataSerializer,
     InventoryItemDataSerializer, InventoryItemThresholdSerializer,
     AssetsSerializer, RawMaterialsSerializer,
-    PurchaseRequestSerializer
+    PurchaseRequestSerializer, QuotationContentSerializer, PurchaseQuotationSerializer
 )
 
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -57,3 +57,11 @@ class PurchaseRequestViewSet(viewsets.ModelViewSet):
             instance._prefetched_objects_cache = {}
             
         return Response(serializer.data)
+
+class QuotationContentViewSet(viewsets.ModelViewSet):
+    queryset = QuotationContent.objects.all()
+    serializer_class = QuotationContentSerializer
+
+class PurchaseQuotationViewSet(viewsets.ModelViewSet):
+    queryset = PurchaseQuotation.objects.all()
+    serializer_class = PurchaseQuotationSerializer

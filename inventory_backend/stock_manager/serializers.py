@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
-    Asset, RawMaterial, Purchase_requests
+    Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation
 )
 import logging
 
@@ -249,36 +249,61 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
 
 
 class PurchaseRequestSerializer(serializers.ModelSerializer):
-    material_details = RawMaterialsSerializer(source='material_id', read_only=True)
-    asset_details = AssetsSerializer(source='asset_id', read_only=True)
-    
     class Meta:
         model = Purchase_requests
         fields = [
             'request_id',
             'employee_id',
             'approval_id',
-            'material_id',
-            'asset_id',
-            'material_details',
-            'asset_details',
-            'purchase_description',
-            'purchase_quantity',
             'valid_date',
             'document_date',
             'required_date',
         ]
+
+class QuotationContentSerializer(serializers.ModelSerializer):
+    material_details = RawMaterialsSerializer(source='material', read_only=True)
+    asset_details = AssetsSerializer(source='asset', read_only=True)
+    request_details = PurchaseRequestSerializer(source='request', read_only=True)
+    
+    class Meta:
+        model = QuotationContent
+        fields = [
+            'quotation_content_id',
+            'request',
+            'request_details',
+            'unit_price',
+            'discount',
+            'tax_code',
+            'total',
+            'material',
+            'asset',
+            'material_details',
+            'asset_details',
+            'purchase_quantity',
+        ]
     
     def validate(self, data):
         """
-        Check that only one of material_id or asset_id is provided.
+        Check that only one of material or asset is provided.
         """
-        material_id = data.get('material_id')
-        asset_id = data.get('asset_id')
+        material = data.get('material')
+        asset = data.get('asset')
         
-        if material_id and asset_id:
+        if material and asset:
             raise serializers.ValidationError(
-                "Only one of material_id or asset_id should be provided, not both."
+                "Only one of material or asset should be provided, not both."
             )
             
         return data
+
+class PurchaseQuotationSerializer(serializers.ModelSerializer):
+    request_details = PurchaseRequestSerializer(source='request', read_only=True)
+    
+    class Meta:
+        model = PurchaseQuotation
+        fields = [
+            'quotation_id',
+            'vendor_id',
+            'request',
+            'request_details',
+        ]

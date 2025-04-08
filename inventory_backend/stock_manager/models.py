@@ -359,34 +359,6 @@ class Purchase_requests(models.Model):
         null=True,
         blank=True
     )
-
-    material_id = models.ForeignKey(
-        RawMaterial,
-        db_column='material_id',
-        to_field='material_id',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='purchase_requests'
-    )       
-    asset_id = models.ForeignKey(
-        Asset,                                                                                                                                                 
-        db_column='asset_id',
-        to_field='asset_id',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='purchase_requests'
-    )
-    
-    purchase_description = models.TextField(
-        null=True,
-        blank=True
-    )
-    purchase_quantity = models.IntegerField(
-        null=True,
-        blank=True
-    )
     valid_date = models.DateField(
         null=True,
         blank=True
@@ -405,9 +377,103 @@ class Purchase_requests(models.Model):
         db_table = 'purchase_requests'
 
     def __str__(self):
-        if self.material_id:
-            return f"Purchase Request for Material: {self.material_id.material_name}"
-        elif self.asset_id:
-            return f"Purchase Request for Asset: {self.asset_id.asset_name}"
+        return f"Purchase Request: {self.request_id}"
+
+class QuotationContent(models.Model):
+    quotation_content_id = models.CharField(
+        db_column='quotation_content_id',
+        primary_key=True,
+        max_length=255
+    )
+    request = models.ForeignKey(
+        Purchase_requests,
+        db_column='request_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    unit_price = models.DecimalField(
+        db_column='unit_price',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    discount = models.DecimalField(
+        db_column='discount',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    tax_code = models.CharField(
+        db_column='tax_code',
+        max_length=50,
+        null=True,
+        blank=True
+    )
+    total = models.DecimalField(
+        db_column='total',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    material = models.ForeignKey(
+        RawMaterial,
+        db_column='material_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    asset = models.ForeignKey(
+        Asset,
+        db_column='asset_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    purchase_quantity = models.IntegerField(
+        db_column='purchase_quantity',
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'quotation_contents'
+
+    def __str__(self):
+        if self.material:
+            return f"Quotation Content for Material: {self.material.material_name}"
+        elif self.asset:
+            return f"Quotation Content for Asset: {self.asset.asset_name}"
         else:
-            return f"Purchase Request: {self.request_id}"
+            return f"Quotation Content: {self.quotation_content_id}"
+
+class PurchaseQuotation(models.Model):
+    quotation_id = models.CharField(
+        db_column='quotation_id',
+        primary_key=True,
+        max_length=255
+    )
+    vendor_id = models.CharField(
+        db_column='vendor_id',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    request = models.ForeignKey(
+        Purchase_requests,
+        db_column='request_id',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'purchase_quotation'
+
+    def __str__(self):
+        return f"Purchase Quotation: {self.quotation_id}"

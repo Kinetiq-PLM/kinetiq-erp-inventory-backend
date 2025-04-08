@@ -6,7 +6,9 @@ from .models import (
     Product,
     Asset,
     RawMaterial,
-    Purchase_requests
+    Purchase_requests,
+    QuotationContent,
+    PurchaseQuotation
 )
 
 admin.site.register(ItemMasterData)
@@ -16,3 +18,5 @@ admin.site.register(Product)
 admin.site.register(Asset)
 admin.site.register(RawMaterial)
 admin.site.register(Purchase_requests)
+admin.site.register(QuotationContent)
+admin.site.register(PurchaseQuotation)
