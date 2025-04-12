@@ -249,6 +249,8 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
 
 
 class PurchaseRequestSerializer(serializers.ModelSerializer):
+    request_id = serializers.CharField(read_only=True)
+    
     class Meta:
         model = Purchase_requests
         fields = [
@@ -259,8 +261,17 @@ class PurchaseRequestSerializer(serializers.ModelSerializer):
             'document_date',
             'required_date',
         ]
+        
+    def create(self, validated_data):
+        """
+        Create a new purchase request with an auto-generated request_id.
+        """
+        # The database trigger will generate the request_id
+        instance = Purchase_requests.objects.create(**validated_data)
+        return instance
 
 class QuotationContentSerializer(serializers.ModelSerializer):
+    quotation_content_id = serializers.CharField(read_only=True)
     material_details = RawMaterialsSerializer(source='material', read_only=True)
     asset_details = AssetsSerializer(source='asset', read_only=True)
     request_details = PurchaseRequestSerializer(source='request', read_only=True)
@@ -295,6 +306,14 @@ class QuotationContentSerializer(serializers.ModelSerializer):
             )
             
         return data
+        
+    def create(self, validated_data):
+        """
+        Create a new quotation content with an auto-generated quotation_content_id.
+        """
+        # The database trigger will generate the quotation_content_id
+        instance = QuotationContent.objects.create(**validated_data)
+        return instance
 
 class PurchaseQuotationSerializer(serializers.ModelSerializer):
     request_details = PurchaseRequestSerializer(source='request', read_only=True)
