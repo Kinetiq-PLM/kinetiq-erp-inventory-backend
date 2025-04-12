@@ -13,6 +13,8 @@ class CyclicCountSerializer(serializers.ModelSerializer):
     product_name = serializers.SerializerMethodField()
     item_id = serializers.SerializerMethodField()
     employee = serializers.SerializerMethodField(method_name='get_employee_id')
+    warehouse_id = serializers.SerializerMethodField()
+    warehouse_id_input = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = CyclicCount
@@ -29,11 +31,14 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "time_period",
             "item_id",
             "product_name",
+            "warehouse_id",
+            "warehouse_id_input",
         ]
         read_only_fields = [
             "product_name",
             "item_id",
             "employee",
+            "warehouse_id",
         ]
 
     def create(self, validated_data):
@@ -42,6 +47,12 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             try:
                 inventory_item = InventoryItem.objects.get(inventory_item_id=inventory_item_id)
                 validated_data['inventory_item'] = inventory_item
+                
+                # If warehouse_id was provided in the request, update the inventory item's warehouse_id
+                warehouse_id = validated_data.pop('warehouse_id_input', None)
+                if warehouse_id and inventory_item:
+                    inventory_item.warehouse_id = warehouse_id
+                    inventory_item.save()
             except InventoryItem.DoesNotExist:
                 raise serializers.ValidationError({"inventory_item_id": f"InventoryItem with id {inventory_item_id} does not exist."})
         else:
@@ -104,4 +115,13 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             return None
         except Exception as e:
             logger.error(f"Error getting employee_id: {str(e)}")
+            return None
+            
+    def get_warehouse_id(self, obj):
+        try:
+            if obj.inventory_item and hasattr(obj.inventory_item, 'warehouse_id'):
+                return obj.inventory_item.warehouse_id
+            return None
+        except Exception as e:
+            logger.error(f"Error getting warehouse_id: {str(e)}")
             return None

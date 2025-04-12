@@ -1,7 +1,8 @@
 from rest_framework import generics
-from .models import CyclicCount
+from .models import CyclicCount, InventoryItem
 from .serializers import CyclicCountSerializer
 from rest_framework.response import Response
+from rest_framework.views import APIView
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,3 +26,14 @@ class CyclicCountList(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         return Response(data)
+
+class WarehouseList(APIView):
+    """
+    View to list all available warehouse IDs.
+    """
+    def get(self, request, format=None):
+        # Get unique warehouse IDs from inventory items
+        warehouses = InventoryItem.objects.values_list('warehouse_id', flat=True).distinct()
+        # Filter out None/empty values and convert to list
+        warehouse_list = [w for w in warehouses if w]
+        return Response(warehouse_list)

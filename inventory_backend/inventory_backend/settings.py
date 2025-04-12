@@ -102,7 +102,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Kinetiq-DB-Schema',
         'USER': 'postgres',
-        'PASSWORD': 'tris123',
+        'PASSWORD': '123',
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
