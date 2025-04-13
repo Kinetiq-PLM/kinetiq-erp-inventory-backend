@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 import logging
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,6 @@ class NotificationViewSet(viewsets.ViewSet):
             
             # Execute raw SQL to insert into the admin.notifications table
             # This is a direct approach since we don't have a Django model for this table
-            from django.db import connection
             with connection.cursor() as cursor:
                 # The table uses a trigger to generate the notifications_id
                 cursor.execute(

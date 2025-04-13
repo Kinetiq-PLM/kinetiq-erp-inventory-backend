@@ -3,6 +3,8 @@ from .models import CyclicCount, InventoryItemThreshold, InventoryItem, ItemMast
 import logging
 import traceback
 from django.db import connections
+from django.db import connection
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +43,6 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "employee",
             "item_type",
         ]
-
-    def get_item_type(self, obj):
-        try:
-            if obj.inventory_item:
-                return obj.inventory_item.item_type
-            return "Unknown"
-        except Exception as e:
-            logger.error(f"Error getting item_type: {str(e)}")
-            return "Unknown"
 
     def create(self, validated_data):
         inventory_item_id = validated_data.pop('inventory_item_id', None)
@@ -137,6 +130,15 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error getting warehouse_id: {str(e)}")
             return None
+
+    def get_item_type(self, obj):
+        try:
+            if obj.inventory_item:
+                return obj.inventory_item.item_type
+            return "Unknown"
+        except Exception as e:
+            logger.error(f"Error getting item_type: {str(e)}")
+            return "Unknown"
 
 # Add the missing serializers
 class ProductSerializer(serializers.ModelSerializer):

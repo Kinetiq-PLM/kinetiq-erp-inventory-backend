@@ -1,0 +1,54 @@
+To display warehouse locations instead of warehouse IDs in your PCounts.jsx, you need to make the following changes:
+
+1. Update your PCounts.jsx file to handle the new warehouse_location field in the table:
+
+```jsx
+// Change this line in the table header row
+<th key={header} className="p-2 text-gray-600">{header}</th>
+
+// Replace the warehouse column in the table data rendering:
+<td className="p-2">{item.warehouse_location || item.warehouse_id || "-"}</td>
+
+// And update the warehouse display in the details panel:
+<p className="text-gray-500 text-sm">Warehouse: {selectedRow?.warehouse_location || selectedRow?.warehouse_id || "-"}</p>
+```
+
+2. Update your warehouse dropdown to show location along with ID:
+
+```jsx
+<select
+  className="w-full border border-gray-300 rounded-lg p-2 text-gray-500 cursor-pointer"
+  value={selectedWarehouse}
+  onChange={(e) => setSelectedWarehouse(e.target.value)}
+>
+  <option value="">Select Warehouse</option>
+  {warehouses.map((w) => (
+    <option key={w.warehouse_id} value={w.warehouse_id}>
+      {w.warehouse_location || w.warehouse_id}
+    </option>
+  ))}
+</select>
+```
+
+3. Update the fetch call for warehouses to handle the new structure:
+
+```jsx
+fetch("http://127.0.0.1:8000/api/warehouses/")
+  .then((res) => {
+    if (!res.ok) {
+      throw new Error(`HTTP error fetching warehouses! Status: ${res.status}`);
+    }
+    return res.json();
+  })
+  .then((data) => {
+    console.log("Warehouse data:", data);
+    if (data && data.length > 0) {
+      setWarehouses(data);
+    }
+  })
+  .catch((err) => {
+    console.error("Error fetching warehouses:", err);
+  });
+```
+
+The backend changes have been applied, and once you implement these frontend changes, warehouse locations will be displayed instead of just warehouse IDs throughout your application. 
