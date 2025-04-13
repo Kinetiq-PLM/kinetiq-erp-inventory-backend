@@ -14,6 +14,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
     item_id = serializers.SerializerMethodField()
     employee = serializers.SerializerMethodField(method_name='get_employee_id')
     warehouse_id_input = serializers.CharField(write_only=True, required=False)
+    item_type = serializers.SerializerMethodField()
 
     class Meta:
         model = CyclicCount
@@ -32,12 +33,23 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "product_name",
             "warehouse_id",
             "warehouse_id_input",
+            "item_type",
         ]
         read_only_fields = [
             "product_name",
             "item_id",
             "employee",
+            "item_type",
         ]
+
+    def get_item_type(self, obj):
+        try:
+            if obj.inventory_item:
+                return obj.inventory_item.item_type
+            return "Unknown"
+        except Exception as e:
+            logger.error(f"Error getting item_type: {str(e)}")
+            return "Unknown"
 
     def create(self, validated_data):
         inventory_item_id = validated_data.pop('inventory_item_id', None)
@@ -125,3 +137,46 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error getting warehouse_id: {str(e)}")
             return None
+
+# Add the missing serializers
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+class ItemMasterDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemMasterData
+        fields = '__all__'
+
+class InventoryItemSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the InventoryItem model.
+    Explicitly includes all fields needed by the frontend, with special attention to item_type.
+    """
+    class Meta:
+        model = InventoryItem
+        fields = [
+            'inventory_item_id',
+            'item_type',
+            'current_quantity',
+            'warehouse_id',
+            'expiry',
+            'shelf_life',
+            'last_update',
+            'date_created',
+            'serial_id',
+            'productdocu_id',
+            'material_id',
+            'asset_id'
+        ]
+
+class InventoryItemThresholdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InventoryItemThreshold
+        fields = '__all__'
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = '__all__'
