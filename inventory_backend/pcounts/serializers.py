@@ -13,7 +13,6 @@ class CyclicCountSerializer(serializers.ModelSerializer):
     product_name = serializers.SerializerMethodField()
     item_id = serializers.SerializerMethodField()
     employee = serializers.SerializerMethodField(method_name='get_employee_id')
-    warehouse_id = serializers.SerializerMethodField()
     warehouse_id_input = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -38,7 +37,6 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "product_name",
             "item_id",
             "employee",
-            "warehouse_id",
         ]
 
     def create(self, validated_data):
@@ -48,11 +46,13 @@ class CyclicCountSerializer(serializers.ModelSerializer):
                 inventory_item = InventoryItem.objects.get(inventory_item_id=inventory_item_id)
                 validated_data['inventory_item'] = inventory_item
                 
-                # If warehouse_id was provided in the request, update the inventory item's warehouse_id
+                # If warehouse_id_input was provided, use it for the cyclic count's warehouse_id
                 warehouse_id = validated_data.pop('warehouse_id_input', None)
-                if warehouse_id and inventory_item:
-                    inventory_item.warehouse_id = warehouse_id
-                    inventory_item.save()
+                if warehouse_id:
+                    validated_data['warehouse_id'] = warehouse_id
+                # If not provided but inventory item has warehouse_id, use that
+                elif inventory_item.warehouse_id:
+                    validated_data['warehouse_id'] = inventory_item.warehouse_id
             except InventoryItem.DoesNotExist:
                 raise serializers.ValidationError({"inventory_item_id": f"InventoryItem with id {inventory_item_id} does not exist."})
         else:

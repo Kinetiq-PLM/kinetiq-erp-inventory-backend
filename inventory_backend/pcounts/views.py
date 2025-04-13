@@ -32,8 +32,10 @@ class WarehouseList(APIView):
     View to list all available warehouse IDs.
     """
     def get(self, request, format=None):
-        # Get unique warehouse IDs from inventory items
         warehouses = InventoryItem.objects.values_list('warehouse_id', flat=True).distinct()
-        # Filter out None/empty values and convert to list
+        
         warehouse_list = [w for w in warehouses if w]
+  
+        warehouse_list.sort()
+        
         return Response(warehouse_list)

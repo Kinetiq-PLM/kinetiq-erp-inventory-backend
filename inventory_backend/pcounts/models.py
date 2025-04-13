@@ -135,6 +135,17 @@ class ItemMasterData(models.Model):
 
 
 class InventoryItem(models.Model):
+    SHELF_LIFE_CHOICES = [
+        ('Depreciating', 'Depreciating'),
+        ('Expiring', 'Expiring'),
+    ]
+    
+    ITEM_TYPE_CHOICES = [
+        ('Product', 'Product'),
+        ('Asset', 'Asset'),
+        ('Material', 'Material'),
+    ]
+    
     inventory_item_id = models.CharField(
         db_column='inventory_item_id',
         primary_key=True,
@@ -166,7 +177,8 @@ class InventoryItem(models.Model):
     )
     item_type = models.CharField(
         db_column='item_type',
-        max_length=50
+        max_length=50,
+        choices=ITEM_TYPE_CHOICES
     )
     current_quantity = models.IntegerField(
         db_column='current_quantity'
@@ -177,14 +189,30 @@ class InventoryItem(models.Model):
         null=True,
         blank=True
     )
+    expiry = models.DateTimeField(
+        db_column='expiry',
+        null=True,
+        blank=True
+    )
+    shelf_life = models.CharField(
+        db_column='shelf_life',
+        max_length=20,
+        choices=SHELF_LIFE_CHOICES,
+        null=True,
+        blank=True
+    )
+    last_update = models.DateTimeField(
+        db_column='last_update',
+        auto_now=True
+    )
     date_created = models.DateTimeField(
         db_column='date_created',
-        editable=False
+        auto_now_add=True
     )
 
     class Meta:
         managed = False
-        db_table = 'inventory_item'
+        db_table = 'inventory"."inventory_item'
 
     def __str__(self):
         return self.inventory_item_id
@@ -212,12 +240,10 @@ class InventoryItemThreshold(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'inventory_item_threshold'
+        db_table = 'inventory"."inventory_item_threshold'
 
     def __str__(self):
-        if self.item:
-            return f"Thresholds for {self.item.item_id} ({self.item.item_name or 'No Name'})"
-        return self.inventory_item_threshold_id
+        return f"Threshold for {self.item_id if self.item_id else 'unknown item'}"
 
 
 class Employee(models.Model):
@@ -243,15 +269,22 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
-STATUS_CHOICES = [
-    ('Completed', 'Completed'),
-    ('In Progress', 'In Progress'),
-    ('Open', 'Open'),
-    ('Closed', 'Closed'),
-]
-
-
 class CyclicCount(models.Model):
+    STATUS_CHOICES = [
+        ('Open', 'Open'),
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
+        ('Closed', 'Closed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+    
+    TIME_PERIOD_CHOICES = [
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('yearly', 'Yearly'),
+    ]
+    
     inventory_count_id = models.CharField(
         db_column='inventory_count_id',
         primary_key=True,
@@ -265,22 +298,16 @@ class CyclicCount(models.Model):
         blank=True
     )
     item_onhand = models.IntegerField(
-        db_column='item_onhand',
-        null=True,
-        blank=True
+        db_column='item_onhand'
     )
     item_actually_counted = models.IntegerField(
-        db_column='item_actually_counted',
-        null=True,
-        blank=True
+        db_column='item_actually_counted'
     )
     difference_in_qty = models.IntegerField(
-        db_column='difference_in_qty',
-        null=True,
-        blank=True
+        db_column='difference_in_qty'
     )
     employee = models.ForeignKey(
-        Employee,
+        'Employee',
         db_column='employee_id',
         on_delete=models.SET_NULL,
         null=True,
@@ -298,15 +325,19 @@ class CyclicCount(models.Model):
     )
     time_period = models.CharField(
         db_column='time_period',
-        max_length=50,
+        max_length=20,
+        choices=TIME_PERIOD_CHOICES
+    )
+    warehouse_id = models.CharField(
+        db_column='warehouse_id',
+        max_length=255,
         null=True,
         blank=True
     )
 
     class Meta:
         managed = False
-        db_table = 'inventory_cyclic_counts'
+        db_table = 'inventory"."inventory_cyclic_counts'
 
     def __str__(self):
-        item_name = self.inventory_item.inventory_item_id if self.inventory_item else "No Item"
-        return f"{self.inventory_count_id} - {item_name} - {self.status}"
+        return f"Count {self.inventory_count_id}"
