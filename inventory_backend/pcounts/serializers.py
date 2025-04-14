@@ -17,6 +17,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
     employee = serializers.SerializerMethodField(method_name='get_employee_id')
     warehouse_id_input = serializers.CharField(write_only=True, required=False)
     item_type = serializers.SerializerMethodField()
+    warehouse_location = serializers.SerializerMethodField()
 
     class Meta:
         model = CyclicCount
@@ -36,12 +37,14 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "warehouse_id",
             "warehouse_id_input",
             "item_type",
+            "warehouse_location",
         ]
         read_only_fields = [
             "product_name",
             "item_id",
             "employee",
             "item_type",
+            "warehouse_location",
         ]
 
     def create(self, validated_data):
@@ -179,6 +182,28 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error getting item_type: {str(e)}")
             return "Unknown"
+
+    def get_warehouse_location(self, obj):
+        """Get the warehouse location from the admin.warehouse table"""
+        try:
+            if obj.warehouse_id:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT warehouse_location 
+                        FROM admin.warehouse 
+                        WHERE warehouse_id = %s
+                        """, 
+                        [obj.warehouse_id]
+                    )
+                    result = cursor.fetchone()
+                    
+                if result and result[0]:
+                    return result[0]
+            return obj.warehouse_id
+        except Exception as e:
+            logger.error(f"Error getting warehouse_location: {str(e)}")
+            return obj.warehouse_id
 
 # Add the missing serializers
 class ProductSerializer(serializers.ModelSerializer):

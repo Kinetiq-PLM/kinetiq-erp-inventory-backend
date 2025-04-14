@@ -37,17 +37,35 @@ class CyclicCountList(APIView):
 
 class WarehouseList(APIView):
     """
-    View to list all available warehouse IDs.
+    View to list all available warehouse IDs and locations.
     """
     def get(self, request):
         try:
-            # Query distinct warehouse IDs from inventory items
-            warehouse_ids = InventoryItem.objects.values_list('warehouse_id', flat=True).distinct()
+            warehouse_data = []
             
-            # Convert to list and filter out None values
-            warehouse_list = [w for w in warehouse_ids if w]
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT warehouse_id, warehouse_location 
+                    FROM admin.warehouse
+                    """
+                )
+                rows = cursor.fetchall()
+                
+                for row in rows:
+                    warehouse_id = row[0]
+                    warehouse_location = row[1] if row[1] else row[0]
+                    warehouse_data.append({
+                        'id': warehouse_id,
+                        'name': warehouse_location
+                    })
             
-            return Response(warehouse_list)
+            if not warehouse_data:
+                warehouse_ids = InventoryItem.objects.values_list('warehouse_id', flat=True).distinct()
+       
+                warehouse_data = [{'id': w, 'name': w} for w in warehouse_ids if w]
+            
+            return Response(warehouse_data)
         except Exception as e:
             logger.error(f"Error fetching warehouse list: {str(e)}")
             return Response({"error": "Failed to fetch warehouse list"}, status=500)
