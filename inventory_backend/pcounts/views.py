@@ -176,3 +176,72 @@ class UserList(APIView):
         except Exception as e:
             logger.error(f"Error fetching users: {str(e)}")
             return Response({"error": f"Failed to fetch users: {str(e)}"}, status=500)
+
+class CyclicCountStatusUpdate(APIView):
+    """
+    View to update the status of a cyclic count.
+    Ensures proper status transitions: Open -> In Progress -> Completed -> Closed
+    """
+    
+    def get_valid_transitions(self, current_status):
+        """
+        Define valid status transitions based on current status
+        """
+        transitions = {
+            'Open': ['In Progress', 'Cancelled'],
+            'In Progress': ['Completed', 'Cancelled'],
+            'Completed': ['Closed', 'In Progress'],  # Allow reopening if needed
+            'Closed': [],  # Terminal state, no further transitions
+            'Cancelled': []  # Terminal state, no further transitions
+        }
+        return transitions.get(current_status, [])
+    
+    def patch(self, request, count_id):
+        try:
+            # Get the cyclic count instance
+            cyclic_count = get_object_or_404(CyclicCount, inventory_count_id=count_id)
+            
+            # Get the current and new status
+            current_status = cyclic_count.status
+            new_status = request.data.get('status')
+            
+            # Validate status is provided
+            if not new_status:
+                return Response(
+                    {"error": "Status field is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if the transition is valid
+            valid_transitions = self.get_valid_transitions(current_status)
+            if not valid_transitions and current_status != new_status:
+                return Response(
+                    {"error": f"No transitions allowed from '{current_status}' status"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if new_status not in valid_transitions and current_status != new_status:
+                return Response(
+                    {"error": f"Invalid status transition from '{current_status}' to '{new_status}'. Valid transitions are: {', '.join(valid_transitions)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Optional: Get remarks for status change
+            remarks = request.data.get('remarks')
+            if remarks:
+                cyclic_count.remarks = remarks
+            
+            # Update the status
+            cyclic_count.status = new_status
+            cyclic_count.save()
+            
+            # Return the updated cyclic count
+            serializer = CyclicCountSerializer(cyclic_count)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error updating cyclic count status: {str(e)}")
+            return Response(
+                {"error": f"Failed to update status: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

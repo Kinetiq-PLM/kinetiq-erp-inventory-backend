@@ -99,7 +99,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
                         print(f"Using item's current_quantity = {inventory_item.current_quantity}")
 
                 if 'item_actually_counted' in validated_data and 'item_onhand' in validated_data:
-                    validated_data['difference_in_qty'] = validated_data['item_onhand'] - validated_data['item_actually_counted']
+                    validated_data['difference_in_qty'] = validated_data['item_actually_counted'] - validated_data['item_onhand']
                 
             except InventoryItem.DoesNotExist:
                 raise serializers.ValidationError({"inventory_item_id": f"InventoryItem with id {inventory_item_id} does not exist."})
