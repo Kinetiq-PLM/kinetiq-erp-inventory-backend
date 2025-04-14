@@ -50,14 +50,54 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             try:
                 inventory_item = InventoryItem.objects.get(inventory_item_id=inventory_item_id)
                 validated_data['inventory_item'] = inventory_item
-                
-                # If warehouse_id_input was provided, use it for the cyclic count's warehouse_id
+
                 warehouse_id = validated_data.pop('warehouse_id_input', None)
                 if warehouse_id:
                     validated_data['warehouse_id'] = warehouse_id
-                # If not provided but inventory item has warehouse_id, use that
                 elif inventory_item.warehouse_id:
                     validated_data['warehouse_id'] = inventory_item.warehouse_id
+                
+      
+                with connection.cursor() as cursor:
+        
+                    item_type = inventory_item.item_type
+                    item_id_field = None
+                    item_id_value = None
+                    
+                    if item_type == 'Product' and inventory_item.productdocu_id:
+                        item_id_field = 'productdocu_id'
+                        item_id_value = inventory_item.productdocu_id
+                    elif item_type == 'Material' and inventory_item.material_id:
+                        item_id_field = 'material_id'
+                        item_id_value = inventory_item.material_id
+                    elif item_type == 'Asset' and inventory_item.asset_id:
+                        item_id_field = 'asset_id'
+                        item_id_value = inventory_item.asset_id
+                    
+                    if item_id_field and item_id_value and validated_data.get('warehouse_id'):
+                        query = f"""
+                        SELECT SUM(current_quantity) AS item_onhand
+                        FROM inventory."inventory_item" 
+                        WHERE {item_id_field} = %s 
+                        AND warehouse_id = %s
+                        """
+                        cursor.execute(query, [item_id_value, validated_data['warehouse_id']])
+                        result = cursor.fetchone()
+                        if result and result[0] is not None:
+                            validated_data['item_onhand'] = result[0]
+                            print(f"Calculated item_onhand = {result[0]} for {item_id_field}={item_id_value} in warehouse {validated_data['warehouse_id']}")
+                        else:
+                         
+                            validated_data['item_onhand'] = inventory_item.current_quantity
+                            print(f"No aggregated quantity found, using item's current_quantity = {inventory_item.current_quantity}")
+                    else:
+ 
+                        validated_data['item_onhand'] = inventory_item.current_quantity
+                        print(f"Using item's current_quantity = {inventory_item.current_quantity}")
+
+                if 'item_actually_counted' in validated_data and 'item_onhand' in validated_data:
+                    validated_data['difference_in_qty'] = validated_data['item_onhand'] - validated_data['item_actually_counted']
+                
             except InventoryItem.DoesNotExist:
                 raise serializers.ValidationError({"inventory_item_id": f"InventoryItem with id {inventory_item_id} does not exist."})
         else:
