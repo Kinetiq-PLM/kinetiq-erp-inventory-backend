@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 import logging
 from django.apps import apps
+from django.db import connection
 
 logger = logging.getLogger(__name__)
 
@@ -126,3 +127,34 @@ class NotificationViewSet(viewsets.ViewSet):
                 {"error": f"Failed to create notification: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+# Add UserList API view
+class UserList(APIView):
+    """
+    View to list all available admin users.
+    """
+    def get(self, request):
+        try:
+            # Use direct DB connection to fetch users
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT user_id, first_name, last_name 
+                    FROM admin.users
+                    ORDER BY first_name, last_name
+                    """
+                )
+                rows = cursor.fetchall()
+                
+                # Format as list of objects with id and name
+                users = []
+                for row in rows:
+                    users.append({
+                        'user_id': row[0],
+                        'name': f"{row[1]} {row[2]}"  # Combine first_name and last_name
+                    })
+                
+                return Response(users)
+        except Exception as e:
+            logger.error(f"Error fetching users: {str(e)}")
+            return Response({"error": f"Failed to fetch users: {str(e)}"}, status=500)
