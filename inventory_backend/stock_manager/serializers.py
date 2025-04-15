@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (
     Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
-    Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation
+    Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation,
+    ProductInventoryView
 )
 import logging
 
@@ -326,3 +327,9 @@ class PurchaseQuotationSerializer(serializers.ModelSerializer):
             'request',
             'request_details',
         ]
+
+class ProductInventoryViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductInventoryView
+        fields = ['product_id', 'stock_committed', 'total_stock', 'available_stock', 
+                 'minimum_threshold', 'maximum_threshold', 'last_update']

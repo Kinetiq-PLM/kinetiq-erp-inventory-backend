@@ -477,3 +477,28 @@ class PurchaseQuotation(models.Model):
 
     def __str__(self):
         return f"Purchase Quotation: {self.quotation_id}"
+
+class ProductInventoryView(models.Model):
+    """
+    Maps to the vw_inventory_product_data database view.
+    
+    This view provides inventory information for products including:
+    - stock_committed: Amount reserved in open orders
+    - total_stock: Total physical inventory
+    - available_stock: What's available for new orders (total_stock - stock_committed)
+    - Threshold values for reordering
+    """
+    product_id = models.CharField(max_length=255, primary_key=True)
+    stock_committed = models.IntegerField(default=0)
+    total_stock = models.IntegerField(default=0)
+    available_stock = models.IntegerField(default=0)
+    minimum_threshold = models.IntegerField(default=0)
+    maximum_threshold = models.IntegerField(default=0)
+    last_update = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_inventory_product_data'
+    
+    def __str__(self):
+        return f"Inventory for {self.product_id}"

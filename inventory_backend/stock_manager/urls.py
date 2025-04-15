@@ -4,7 +4,8 @@ from .views import (
     ProductsViewSet, AdminItemMasterDataViewSet,
     InventoryItemDataViewSet, InventoryItemThresholdViewSet,
     AssetsViewSet, RawMaterialsViewSet,
-    PurchaseRequestViewSet, QuotationContentViewSet, PurchaseQuotationViewSet
+    PurchaseRequestViewSet, QuotationContentViewSet, PurchaseQuotationViewSet,
+    ProductInventoryViewSet
 )
 
 router = DefaultRouter()
@@ -17,6 +18,7 @@ router.register(r'raw-materials', RawMaterialsViewSet, basename='raw-materials')
 router.register(r'purchase-requests', PurchaseRequestViewSet, basename='purchase-requests')
 router.register(r'quotation-contents', QuotationContentViewSet, basename='quotation-contents')
 router.register(r'purchase-quotations', PurchaseQuotationViewSet, basename='purchase-quotations')
+router.register(r'product-inventory', ProductInventoryViewSet, basename='product-inventory')
 
 urlpatterns = [
     path('', include(router.urls)),
