@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
     Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation,
-    ProductInventoryView, AssetInventoryView
+    ProductInventoryView, AssetInventoryView, RawMaterialInventoryView
 )
 import logging
 
@@ -338,4 +338,10 @@ class AssetInventoryViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssetInventoryView
         fields = ['asset_id', 'stock_on_order', 'total_stock', 
+                 'minimum_threshold', 'maximum_threshold', 'last_update']
+
+class RawMaterialInventoryViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RawMaterialInventoryView
+        fields = ['material_id', 'stock_on_order', 'total_stock', 
                  'minimum_threshold', 'maximum_threshold', 'last_update']

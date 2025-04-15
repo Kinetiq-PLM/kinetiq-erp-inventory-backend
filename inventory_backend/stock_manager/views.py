@@ -6,14 +6,14 @@ from rest_framework.response import Response
 from .models import (
     Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
     Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation,
-    ProductInventoryView, AssetInventoryView
+    ProductInventoryView, AssetInventoryView, RawMaterialInventoryView
 )
 from .serializers import (
     ProductsSerializer, AdminItemMasterDataSerializer,
     InventoryItemDataSerializer, InventoryItemThresholdSerializer,
     AssetsSerializer, RawMaterialsSerializer,
     PurchaseRequestSerializer, QuotationContentSerializer, PurchaseQuotationSerializer,
-    ProductInventoryViewSerializer, AssetInventoryViewSerializer
+    ProductInventoryViewSerializer, AssetInventoryViewSerializer, RawMaterialInventoryViewSerializer
 )
 from django.db.models import F
 from rest_framework.permissions import IsAuthenticated
@@ -147,7 +147,7 @@ class AssetInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         # Filter by low stock (available_stock < minimum_threshold)
         low_stock = self.request.query_params.get('low_stock', None)
         if low_stock is not None and low_stock.lower() == 'true':
-            queryset = queryset.filter(available_stock__lt=F('minimum_threshold'))
+            queryset = queryset.filter(total_stock__lt=F('minimum_threshold'))
         
         # Log result count
         print(f"Found {queryset.count()} asset inventory items")
@@ -172,5 +172,56 @@ class AssetInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         except Exception as e:
             return Response(
                 {"error": f"Failed to retrieve asset inventory item: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class RawMaterialInventoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    A viewset for viewing raw material inventory data including on-order stock and total stock
+    """
+    queryset = RawMaterialInventoryView.objects.all()
+    serializer_class = RawMaterialInventoryViewSerializer
+    # Allow both authenticated and unauthenticated users for testing
+    authentication_classes = [] 
+    permission_classes = []
+    
+    def get_queryset(self):
+        # Add logging for debugging
+        print("Fetching raw material inventory data")
+        queryset = RawMaterialInventoryView.objects.all()
+        
+        # Filter by material_id if provided
+        material_id = self.request.query_params.get('material_id', None)
+        if material_id is not None:
+            queryset = queryset.filter(material_id__exact=material_id)
+            
+        # Filter by low stock (total_stock < minimum_threshold)
+        low_stock = self.request.query_params.get('low_stock', None)
+        if low_stock is not None and low_stock.lower() == 'true':
+            queryset = queryset.filter(total_stock__lt=F('minimum_threshold'))
+        
+        # Log result count
+        print(f"Found {queryset.count()} material inventory items")
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to retrieve raw material inventory data: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to retrieve raw material inventory item: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

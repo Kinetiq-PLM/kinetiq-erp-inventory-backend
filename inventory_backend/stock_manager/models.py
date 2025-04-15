@@ -525,3 +525,26 @@ class AssetInventoryView(models.Model):
     
     def __str__(self):
         return f"Inventory for asset {self.asset_id}"
+
+class RawMaterialInventoryView(models.Model):
+    """
+    Maps to the vw_inventory_material_data database view.
+    
+    This view provides inventory information for raw materials including:
+    - stock_on_order: Quantity ordered from suppliers but not yet received
+    - total_stock: Total physical inventory currently in warehouse
+    - Threshold values for inventory management
+    """
+    material_id = models.CharField(max_length=255, primary_key=True)
+    stock_on_order = models.IntegerField(default=0)
+    total_stock = models.IntegerField(default=0)
+    minimum_threshold = models.IntegerField(default=0)
+    maximum_threshold = models.IntegerField(default=0)
+    last_update = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_inventory_material_data'
+    
+    def __str__(self):
+        return f"Inventory for material {self.material_id}"
