@@ -1,6 +1,6 @@
         
 from rest_framework import serializers
-from .models import DeprecationReport, DocumentItem,  Asset, RawMaterial, productDocument, Employee
+from .models import ExpiryReport
 
 class AssetsDeprecationReportSerializer(serializers.Serializer):
     deprecation_report_id = serializers.CharField()
@@ -27,3 +27,8 @@ class ProductDeprecationReportSerializer(serializers.Serializer):
     product_name = serializers.CharField(source="inventory_item_id__productdocu_id__product_id__product_name")
     expiry = serializers.DateField(source="inventory_item_id__expiry")
     quantity = serializers.IntegerField(source="inventory_item_id__current_quantity")
+
+class ExpiryReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpiryReport
+        fields = ['expiry_report_id', 'expiry_report_status', 'item_management', 'item_identification', 'current_quantity', 'expiry', 'warehouse_id']

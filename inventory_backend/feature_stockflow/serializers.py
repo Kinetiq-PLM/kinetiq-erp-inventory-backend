@@ -1,42 +1,10 @@
 # inventory/serializers.py
 from rest_framework import serializers
-from .models import WarehouseMovement, Warehouse, InventoryItemData
+from .models import Warehouse, InventoryItemData, WarehouseMovement, WarehouseMovementItem, WarehouseMovementData
+from django.utils import timezone
+from datetime import datetime
+import uuid
 
-class WarehouseMovementSerializer(serializers.ModelSerializer):
-    item = serializers.CharField(source='item.item_id')  # Display item_id
-    destination = serializers.CharField(source='destination.warehouse_id')  # Display warehouse_id
-    source = serializers.CharField(source='source.warehouse_id')  # Display warehouse_id
-    reference_id_purchase_order = serializers.CharField(
-        source='reference_id_purchase_order.purchase_id', allow_null=True
-    )
-    reference_id_order = serializers.CharField(
-        source='reference_id_order.order_id', allow_null=True
-    )
-
-    class Meta:
-        model = WarehouseMovement
-        fields = [
-            'movement_id',
-            'item',
-            'movement_type',
-            'quantity',
-            'movement_date',
-            'destination',
-            'source',
-            'reference_id_purchase_order',
-            'reference_id_order',
-        ]
-
-# class WarehouseItemListSerializer(serializers.Serializer):
-#     item_name = serializers.CharField()
-#     item_management = serializers.CharField()
-#     type = serializers.CharField()
-#     identifier = serializers.CharField()
-#     expiry_date = serializers.DateField()
-#     quantity = serializers.IntegerField()
-#     content_id = serializers.CharField()
-#     warehouse_location = serializers.CharField()
-    
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
@@ -54,7 +22,60 @@ class InventoryItemDataSerializer(serializers.ModelSerializer):
             'current_quantity',
             'shelf_life',
             'expiry',
+            'warehouse_id',
             'warehouse_location'
         ]
 
-        read_only_fields = fields  # Since it's a view, all fields are read-only
+        read_only_fields = fields  
+
+
+
+class WarehouseMovementSerializer(serializers.ModelSerializer):
+    docu_creation_date = serializers.DateTimeField(required=False)
+    movement_date = serializers.DateTimeField(required=False)
+
+    class Meta:
+        model = WarehouseMovement
+        fields = [
+            'movement_id',            
+            'docu_creation_date',
+            'movement_date',
+            'movement_status',
+            'destination',
+            'source',
+            'comments'
+        ]
+        read_only_fields = ['movement_id'] 
+
+    def create(self, validated_data):
+        validated_data['docu_creation_date'] = validated_data.get('docu_creation_date', timezone.now())
+        validated_data['movement_date'] = validated_data.get('movement_date', timezone.now())
+        
+        current_year = datetime.now().year
+        
+        if not validated_data.get('movement_id'):
+            validated_data['movement_id'] = f"IN-WM-{current_year}-{uuid.uuid4().hex[:6].upper()}"
+            
+        movement = WarehouseMovement.objects.create(**validated_data)
+
+        return movement
+    
+class WarehouseMovementItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WarehouseMovementItem
+        fields = ['warehouse_movement_items_id', 'movement_id', 'inventory_item_id', 'quantity']
+        read_only_fields = ['warehouse_movement_items_id'] 
+
+    def create(self, validated_data):
+        
+        current_year = datetime.now().year
+        custom_id = f"WM-ITEM-{current_year}-{uuid.uuid4().hex[:8].upper()}"
+
+        validated_data['warehouse_movement_items_id'] = custom_id
+
+        return WarehouseMovementItem.objects.create(**validated_data)
+    
+class WarehouseMovementDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WarehouseMovementData
+        fields = '__all__'

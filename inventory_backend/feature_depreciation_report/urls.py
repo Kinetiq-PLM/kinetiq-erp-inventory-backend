@@ -9,10 +9,11 @@
 
 
 from django.urls import path
-from .views import ProductDeprecationReportList, AssetsDeprecationReportList, RawMatDeprecationReportList
+from .views import  ExpiryReportList
 
 urlpatterns = [
-    path('product-depreciation-report/', ProductDeprecationReportList.as_view(), name='product-depreciation-report'),
-    path('assets-depreciation-report/', AssetsDeprecationReportList.as_view(), name='assets-depreciation-report'),
-    path('raw-material-depreciation-report/', RawMatDeprecationReportList.as_view(), name='raw-material-depreciation-report'),
+    # path('product-depreciation-report/', ProductDeprecationReportList.as_view(), name='product-depreciation-report'),
+    # path('assets-depreciation-report/', AssetsDeprecationReportList.as_view(), name='assets-depreciation-report'),
+    # path('raw-material-depreciation-report/', RawMatDeprecationReportList.as_view(), name='raw-material-depreciation-report'),
+    path('expiry-report/', ExpiryReportList.as_view(), name='expiry-report'),
 ]

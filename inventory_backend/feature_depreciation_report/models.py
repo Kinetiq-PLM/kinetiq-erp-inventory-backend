@@ -313,53 +313,40 @@ class inventory_items(models.Model):
 
 #  ----- Configurations for Main Model: Depreciation Report -----
 
-# Status Choices for Report Items
-STATUS_CHOICES = [
-    ('pending', 'Pending'),
-    ('completed', 'Completed'),
-]
-
-# Main Model for Depreciation Report
-class DeprecationReport(models.Model):
-    deprecation_report_id = models.CharField(
-        db_column='deprecation_report_id',
-        primary_key=True,
-        max_length=255
-    )
-
-    reported_date = models.DateTimeField(
-        db_column='reported_date',
-        auto_now_add=True
-    )
-
-    status = models.CharField(
-        db_column='status',
-        max_length=20,
-        choices=STATUS_CHOICES,
-    )
-
-    
-    Employee = models.ForeignKey(
-        Employee,
-        db_column='employee_id',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-
-    inventory_item_id = models.ForeignKey(
-        inventory_items,
-        db_column='inventory_item_id',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
+class ExpiryReport(models.Model):
+    fields = (
+        'expiry_report_id',
+        'expiry_report_status',
+        'item_management',
+        'item_identification',
+        'current_quantity',
+        'expiry',
+        'warehouse_id',
     )
 
 
     class Meta:
-        db_table = 'inventory"."deprecation_report'
+        db_table = 'inventory"."vw_expiry_report' 
         managed = False
       
-
     def __str__(self):
-      return f"{self.depreciation_report_id} - {self.status}"
+      return f"{self.expiry_report_id} - {self.status}"
+    
+class InventoryItemData(models.Model):
+    inventory_item_id = models.CharField(max_length=255, primary_key=True)  
+    item_type = models.CharField(max_length=50)
+    item_name = models.CharField(max_length=255)
+    item_management = models.CharField(max_length=50)
+    item_management_id = models.CharField(max_length=255)
+    current_quantity = models.IntegerField()
+    shelf_life = models.CharField(max_length=50)
+    expiry = models.DateField(null=True, blank=True)  
+    warehouse_location = models.CharField(max_length=255, null=True, blank=True)
+    
+    
+    class Meta:
+        managed = False  
+        db_table = 'inventory"."vw_inventory_item_data' 
+        
+    def __str__(self):
+        return self.item_name

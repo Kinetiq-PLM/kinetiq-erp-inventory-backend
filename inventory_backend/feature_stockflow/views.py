@@ -1,13 +1,14 @@
 # inventory/views.py
 from rest_framework import generics
-from .models import WarehouseMovement, DocumentItem, Warehouse, InventoryItemData
+from .models import Warehouse, InventoryItemData, WarehouseMovementData
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from django.db.models import Case, When, Value, F, CharField, DateField
-from .serializers import WarehouseMovementSerializer, WarehouseSerializer, InventoryItemDataSerializer
+from .serializers import WarehouseSerializer, InventoryItemDataSerializer, WarehouseMovementSerializer, WarehouseMovementItemSerializer, WarehouseMovementDataSerializer
 
 
-class WarehouseMovementList(generics.ListAPIView):
-    queryset = WarehouseMovement.objects.all()
-    serializer_class = WarehouseMovementSerializer
+
 
 # Warehouse Table
 class WarehouseList(generics.ListAPIView):
@@ -19,7 +20,29 @@ class InventoryItemDataList(generics.ListAPIView):
     queryset = InventoryItemData.objects.all()
     serializer_class = InventoryItemDataSerializer
 
+class WarehouseMovementCreateView(APIView):
+    def post(self, request):
+        serializer = WarehouseMovementSerializer(data=request.data)
+        if serializer.is_valid():
+            movement = serializer.save()
+            return Response(WarehouseMovementSerializer(movement).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class WarehouseMovementItemCreateView(APIView):
+    def post(self, request):
+        serializer = WarehouseMovementItemSerializer(data=request.data)
+        if serializer.is_valid():
+            # Save the warehouse movement item, with custom ID
+            warehouse_movement_item = serializer.save()
+            return Response(WarehouseMovementItemSerializer(warehouse_movement_item).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class WarehouseMovementDataListView(generics.ListAPIView):
+    queryset = WarehouseMovementData.objects.all()
+    serializer_class = WarehouseMovementDataSerializer
+
+
+    
 # OLD LOGIC (FOR BACKUP)
 
 # class WarehouseItemsList(generics.ListCreateAPIView):
