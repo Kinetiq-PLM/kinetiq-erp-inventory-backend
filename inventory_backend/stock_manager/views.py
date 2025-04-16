@@ -16,11 +16,44 @@ from .serializers import (
     ProductInventoryViewSerializer, AssetInventoryViewSerializer, RawMaterialInventoryViewSerializer
 )
 from django.db.models import F
+from django.db.models import Prefetch, Sum, OuterRef, Subquery, F, IntegerField, Value
+from django.db.models.functions import Coalesce
 from rest_framework.permissions import IsAuthenticated
 
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.all()
+    # queryset = Product.objects.all() # Remove or comment out the original queryset
     serializer_class = ProductsSerializer
+
+    def get_queryset(self):
+        # Subquery to get the first related ItemMasterData's item_id
+        item_master_subquery = ItemMasterData.objects.filter(
+            product=OuterRef('pk')
+        ).values('item_id')[:1]
+
+        # Subquery to get the minimum threshold from the related threshold object
+        min_threshold_subquery = InventoryItemThreshold.objects.filter(
+            item__product=OuterRef('pk')
+        ).values('minimum_threshold')[:1]
+        
+        # Subquery to get the maximum threshold from the related threshold object
+        max_threshold_subquery = InventoryItemThreshold.objects.filter(
+            item__product=OuterRef('pk')
+        ).values('maximum_threshold')[:1]
+
+        # Subquery to get total stock from the dedicated view
+        total_quantity_subquery = ProductInventoryView.objects.filter(
+            product_id=OuterRef('pk')
+        ).values('total_stock')[:1]
+
+        queryset = Product.objects.annotate(
+            annotated_item_id=Subquery(item_master_subquery),
+            annotated_total_quantity=Coalesce(Subquery(total_quantity_subquery, output_field=IntegerField()), Value(0)),
+            annotated_minimum_threshold=Subquery(min_threshold_subquery),
+            annotated_maximum_threshold=Subquery(max_threshold_subquery)
+        ).prefetch_related(
+            Prefetch('itemmasterdata_set', queryset=ItemMasterData.objects.select_related('product').only('item_id', 'product__product_name'), to_attr='prefetched_itemmasterdata')
+        )
+        return queryset
 
 class AdminItemMasterDataViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ItemMasterData.objects.all()
@@ -39,8 +72,41 @@ class AssetsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AssetsSerializer
 
 class RawMaterialsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = RawMaterial.objects.all()
+    # queryset = RawMaterial.objects.all() # Remove or comment out the original queryset
     serializer_class = RawMaterialsSerializer
+
+    def get_queryset(self):
+        # Subquery to get the first related ItemMasterData's item_id
+        item_master_subquery = ItemMasterData.objects.filter(
+            material=OuterRef('pk')
+        ).values('item_id')[:1]
+
+        # Subquery to get the minimum threshold from the related threshold object
+        min_threshold_subquery = InventoryItemThreshold.objects.filter(
+            item__material=OuterRef('pk')
+        ).values('minimum_threshold')[:1]
+        
+        # Subquery to get the maximum threshold from the related threshold object
+        max_threshold_subquery = InventoryItemThreshold.objects.filter(
+            item__material=OuterRef('pk')
+        ).values('maximum_threshold')[:1]
+
+        # Subquery to calculate the total quantity from related inventory items
+        total_quantity_subquery = InventoryItemData.objects.filter(
+            material=OuterRef('pk')
+        ).values('material').annotate(
+            total=Sum('current_quantity')
+        ).values('total')
+
+        queryset = RawMaterial.objects.annotate(
+            annotated_item_id=Subquery(item_master_subquery),
+            annotated_total_quantity=Coalesce(Subquery(total_quantity_subquery, output_field=IntegerField()), Value(0)),
+            annotated_minimum_threshold=Subquery(min_threshold_subquery),
+            annotated_maximum_threshold=Subquery(max_threshold_subquery)
+        ).prefetch_related(
+            Prefetch('itemmasterdata_set', queryset=ItemMasterData.objects.only('item_id', 'material__material_name'), to_attr='prefetched_itemmasterdata')
+        )
+        return queryset
 
 class PurchaseRequestViewSet(viewsets.ModelViewSet):
     queryset = Purchase_requests.objects.all()

@@ -54,7 +54,7 @@ class InventoryItemThresholdSerializer(serializers.ModelSerializer):
 
 
 class ProductsSerializer(serializers.ModelSerializer):
-    item_id = serializers.SerializerMethodField()
+    item_id = serializers.CharField(source='annotated_item_id', read_only=True, allow_null=True)
     admin_item = serializers.SerializerMethodField()
     inventory_data = serializers.SerializerMethodField()
 
@@ -78,48 +78,21 @@ class ProductsSerializer(serializers.ModelSerializer):
         ]
 
     def get_admin_item(self, obj):
-    
-        item = obj.itemmasterdata_set.first()
-        if item:
-            return AdminItemMasterDataSerializer(item).data
-        return None
-
-    def get_item_id(self, obj):
-        item = obj.itemmasterdata_set.first()
-        if item:
-            return item.item_id
+        prefetched_items = getattr(obj, 'prefetched_itemmasterdata', [])
+        if prefetched_items:
+            return AdminItemMasterDataSerializer(prefetched_items[0]).data
         return None
 
     def get_inventory_data(self, obj):
         try:
-            item = obj.itemmasterdata_set.first()
-            if not item:
-                return {}
-                
-            # Get threshold data
-            threshold = InventoryItemThreshold.objects.filter(item=item).first()
-            threshold_data = {}
-            if threshold:
-                threshold_data = {
-                    'minimum_threshold': threshold.minimum_threshold,
-                    'maximum_threshold': threshold.maximum_threshold
-                }
-            
-            # Get inventory items related to this product
-            inventory_items = InventoryItemData.objects.filter(material__product_id=obj.product_id)
-            
-            # Calculate total quantity
-            total_quantity = sum(item.current_quantity for item in inventory_items)
-            
-            data = {
-                'item_id': item.item_id,
-                'current_quantity': total_quantity,
-                **threshold_data
+            return {
+                'item_id': getattr(obj, 'annotated_item_id', None),
+                'current_quantity': getattr(obj, 'annotated_total_quantity', 0),
+                'minimum_threshold': getattr(obj, 'annotated_minimum_threshold', None),
+                'maximum_threshold': getattr(obj, 'annotated_maximum_threshold', None)
             }
-            
-            return data
         except Exception as e:
-            logger.error(f"Error merging inventory data for product {obj.product_id}: {str(e)}")
+            logger.error(f"Error processing annotated inventory data for product {obj.product_id}: {str(e)}")
             return {}
 
 
@@ -188,7 +161,7 @@ class AssetsSerializer(serializers.ModelSerializer):
 
 class RawMaterialsSerializer(serializers.ModelSerializer):
 
-    item_id = serializers.SerializerMethodField()
+    item_id = serializers.CharField(source='annotated_item_id', read_only=True, allow_null=True)
     admin_item = serializers.SerializerMethodField()
     inventory_data = serializers.SerializerMethodField()
     description = serializers.CharField(required=False)
@@ -199,7 +172,7 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
         fields = [
             'material_id', 
             'admin_item',
-            'item_id', 
+            'item_id',
             'material_name',
             'description',
             'unit_of_measure',
@@ -207,45 +180,21 @@ class RawMaterialsSerializer(serializers.ModelSerializer):
         ]
 
     def get_admin_item(self, obj):
-        item = obj.itemmasterdata_set.first()
-        if item:
-            return AdminItemMasterDataSerializer(item).data
-        return None
-
-    def get_item_id(self, obj):
-        item = obj.itemmasterdata_set.first()
-        if item:
-            return item.item_id
+        prefetched_items = getattr(obj, 'prefetched_itemmasterdata', [])
+        if prefetched_items:
+            return AdminItemMasterDataSerializer(prefetched_items[0]).data
         return None
 
     def get_inventory_data(self, obj):
-        item = obj.itemmasterdata_set.first()
-        if not item:
-            return {}
         try:
-            # Get threshold data
-            threshold = InventoryItemThreshold.objects.filter(item=item).first()
-            threshold_data = {}
-            if threshold:
-                threshold_data = {
-                    'minimum_threshold': threshold.minimum_threshold,
-                    'maximum_threshold': threshold.maximum_threshold
-                }
-            
-            # Get inventory items related to this material
-            inventory_items = InventoryItemData.objects.filter(material=obj)
-            
-            # Calculate total quantity
-            total_quantity = sum(item.current_quantity for item in inventory_items)
-            
             return {
-                'item_id': item.item_id,
-                'current_quantity': total_quantity,
-                **threshold_data,
-                'last_update': inventory_items[0].date_created if inventory_items else None
+                'item_id': getattr(obj, 'annotated_item_id', None),
+                'current_quantity': getattr(obj, 'annotated_total_quantity', 0),
+                'minimum_threshold': getattr(obj, 'annotated_minimum_threshold', None),
+                'maximum_threshold': getattr(obj, 'annotated_maximum_threshold', None)
             }
         except Exception as e:
-            logger.error(f"Error getting inventory data for material {obj.material_id}: {str(e)}")
+            logger.error(f"Error processing annotated inventory data for material {obj.material_id}: {str(e)}")
             return {}
 
 
