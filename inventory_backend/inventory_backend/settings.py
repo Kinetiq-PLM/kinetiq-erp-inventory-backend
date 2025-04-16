@@ -62,13 +62,20 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "http://localhost:8080",
+#     "http://127.0.0.1:8080",
+# ]                                                                                                     
 
 REST_FRAMEWORK = {
     'DEFAULT-PERMISSION-CLASSES': (
         'rest_framework.permission.AllowAny'
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "django_cognito_jwt.JSONWebTokenAuthentication",
+        "django_cognito_jwt.JSONWebTokenAuthentication",                                                                                                    
     ),
 }
 
@@ -97,30 +104,30 @@ WSGI_APPLICATION = 'inventory_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 import os
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('DB_NAME', 'Kinetiq-DB'),
-#         'USER': os.getenv('DB_USER', 'postgres'),
-#         'PASSWORD': os.getenv('DB_PASSWORD', 'KntBg3jIY0DbpH8G9bwt'),
-#         'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-#         'PORT': os.getenv('DB_PORT', '15432'),
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Kinetiq-DB-Schema3',
-        'USER': 'postgres',
-        'PASSWORD': 'tris123',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'OPTIONS': {
-            'options': '-c search_path=public,purchasing,inventory,human_resources,admin'
-        }
+        'NAME': os.getenv('DB_NAME', 'Kinetiq-DB'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'KntBg3jIY0DbpH8G9bwt'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '15432'),
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'Kinetiq-DB-Schema',
+#         'USER': 'postgres',
+#         'PASSWORD': '123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#         'OPTIONS': {
+#             'options': '-c search_path=public,purchasing,inventory,human_resources,admin'
+#         }
+#     }
+# }
 
 
 

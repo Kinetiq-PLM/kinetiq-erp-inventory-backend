@@ -66,7 +66,7 @@ class Product(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'products'
+        db_table = '"admin"."products"'
 
     def __str__(self):
         return self.product_name
@@ -108,7 +108,7 @@ class Asset(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'assets'
+        db_table = '"admin"."assets"'
 
     def __str__(self):
         return self.asset_name
@@ -151,7 +151,7 @@ class RawMaterial(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'raw_materials'
+        db_table = '"admin"."raw_materials"'
 
     def __str__(self):
         return self.material_name
@@ -254,7 +254,7 @@ class ItemMasterData(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'item_master_data'
+        db_table = '"admin"."item_master_data"'
 
     def __str__(self):
         return self.item_name if self.item_name else self.item_id
@@ -311,7 +311,7 @@ class InventoryItemData(models.Model):
 
     class Meta:
         managed = False 
-        db_table = 'inventory_item'
+        db_table = '"inventory"."inventory_item"'
 
     def __str__(self):
         return f"Inventory Item: {self.inventory_item_id}"
@@ -339,7 +339,7 @@ class InventoryItemThreshold(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'inventory_item_threshold'  
+        db_table = '"inventory"."inventory_item_threshold"'  
 
     def __str__(self):
         return f"Threshold for {self.item.item_id}"
@@ -374,7 +374,7 @@ class Purchase_requests(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'purchase_requests'
+        db_table = '"purchasing"."purchase_requests"'
 
     def __str__(self):
         return f"Purchase Request: {self.request_id}"
@@ -441,7 +441,7 @@ class QuotationContent(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'quotation_contents'
+        db_table = '"purchasing"."quotation_contents"'
 
     def __str__(self):
         if self.material:
@@ -473,7 +473,7 @@ class PurchaseQuotation(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'purchase_quotation'
+        db_table = '"purchasing"."purchase_quotation"'
 
     def __str__(self):
         return f"Purchase Quotation: {self.quotation_id}"
@@ -498,7 +498,7 @@ class ProductInventoryView(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_inventory_product_data'
+        db_table = '"public"."vw_inventory_product_data"'
     
     def __str__(self):
         return f"Inventory for {self.product_id}"
@@ -521,7 +521,7 @@ class AssetInventoryView(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_inventory_asset_data'
+        db_table = '"public"."vw_inventory_asset_data"'
     
     def __str__(self):
         return f"Inventory for asset {self.asset_id}"
@@ -544,7 +544,7 @@ class RawMaterialInventoryView(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_inventory_material_data'
+        db_table = '"public"."vw_inventory_material_data"'
     
     def __str__(self):
         return f"Inventory for material {self.material_id}"
