@@ -54,7 +54,7 @@ class WarehouseMovementSerializer(serializers.ModelSerializer):
         current_year = datetime.now().year
         
         if not validated_data.get('movement_id'):
-            validated_data['movement_id'] = f"IN-WM-{current_year}-{uuid.uuid4().hex[:6].upper()}"
+            validated_data['movement_id'] = f"INV-WM-{current_year}-{uuid.uuid4().hex[:6].upper()}"
             
         movement = WarehouseMovement.objects.create(**validated_data)
 
@@ -69,7 +69,7 @@ class WarehouseMovementItemSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         
         current_year = datetime.now().year
-        custom_id = f"WM-ITEM-{current_year}-{uuid.uuid4().hex[:8].upper()}"
+        custom_id = f"INV-WM-ITEM-{current_year}-{uuid.uuid4().hex[:8].upper()}"
 
         validated_data['warehouse_movement_items_id'] = custom_id
 
