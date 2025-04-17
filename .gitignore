@@ -172,5 +172,3 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Zappa settings (contains sensitive credentials)
-zappa_settings.json
