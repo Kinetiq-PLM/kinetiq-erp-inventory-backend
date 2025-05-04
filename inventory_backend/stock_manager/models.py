@@ -423,7 +423,7 @@ class ProductInventoryView(models.Model):
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_inventory_product_data"'
+        db_table = '"inventory"."vw_inventory_product_data"'
     
     def __str__(self):
         return f"Product Inventory: {self.item_name or self.item_id}"
@@ -441,7 +441,7 @@ class AssetInventoryView(models.Model):
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_inventory_asset_data"'
+        db_table = '"inventory"."vw_inventory_asset_data"'
     
     def __str__(self):
         return f"Asset Inventory: {self.item_name or self.item_id}"
@@ -456,11 +456,11 @@ class RawMaterialInventoryView(models.Model):
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
     unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
-    earliest_expiry = models.DateTimeField(null=True, blank=True) # Added field
+    earliest_expiry = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_inventory_material_data"'
+        db_table = '"inventory"."vw_inventory_material_data"'
 
     def __str__(self):
         return f"Material Inventory: {self.item_name or self.item_id}"
@@ -483,7 +483,7 @@ class WarehouseProductStockView(models.Model):
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_warehouse_product_stock"'
+        db_table = '"inventory"."vw_warehouse_product_stock"'
 
     def __str__(self):
         return f"Product Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
@@ -502,7 +502,7 @@ class WarehouseAssetStockView(models.Model):
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_warehouse_asset_stock"'
+        db_table = '"inventory"."vw_warehouse_asset_stock"'
 
     def __str__(self):
         return f"Asset Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
@@ -519,11 +519,11 @@ class WarehouseMaterialStockView(models.Model):
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
     unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
-    earliest_expiry = models.DateTimeField(null=True, blank=True) # Added field
+    earliest_expiry = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_warehouse_material_stock"'
+        db_table = '"inventory"."vw_warehouse_material_stock"'
 
     def __str__(self):
         return f"Material Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
@@ -545,11 +545,11 @@ class WarehouseAllItemStockView(models.Model):
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
     unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
-    earliest_expiry = models.DateTimeField(null=True, blank=True) # Added field
+    earliest_expiry = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
-        db_table = '"public"."vw_warehouse_all_item_stock"'
+        db_table = '"inventory"."vw_warehouse_all_item_stock"'
 
     def __str__(self):
         return f"{self.item_type} Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
