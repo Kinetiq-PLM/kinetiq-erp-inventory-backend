@@ -508,7 +508,7 @@ class WarehouseAssetStockView(models.Model):
         return f"Asset Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
 
 class WarehouseMaterialStockView(models.Model):
-    # Composite key from view: item_id || '-' || warehouse_id
+    # Composite key from view: item_id || \'-\' || warehouse_id
     id = models.CharField(primary_key=True, max_length=511)
     item_id = models.CharField(max_length=255)
     item_name = models.CharField(max_length=255, blank=True, null=True)
