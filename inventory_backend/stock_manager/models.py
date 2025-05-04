@@ -456,11 +456,12 @@ class RawMaterialInventoryView(models.Model):
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
     unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
+    earliest_expiry = models.DateTimeField(null=True, blank=True) # Added field
 
     class Meta:
         managed = False
         db_table = '"public"."vw_inventory_material_data"'
-    
+
     def __str__(self):
         return f"Material Inventory: {self.item_name or self.item_id}"
 
@@ -517,6 +518,8 @@ class WarehouseMaterialStockView(models.Model):
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
+    earliest_expiry = models.DateTimeField(null=True, blank=True) # Added field
 
     class Meta:
         managed = False
@@ -541,7 +544,8 @@ class WarehouseAllItemStockView(models.Model):
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
-    unit_of_measure = models.CharField(max_length=50, blank=True, null=True) # Added field
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
+    earliest_expiry = models.DateTimeField(null=True, blank=True) # Added field
 
     class Meta:
         managed = False

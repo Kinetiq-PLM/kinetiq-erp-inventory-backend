@@ -260,7 +260,8 @@ class RawMaterialInventoryViewSerializer(serializers.ModelSerializer):
             'minimum_threshold',
             'maximum_threshold',
             'last_update',
-            'unit_of_measure'
+            'unit_of_measure',
+            'earliest_expiry'
         ]
 
 
@@ -309,7 +310,9 @@ class WarehouseMaterialStockViewSerializer(serializers.ModelSerializer):
             'stock_on_order', # Currently placeholder
             'minimum_threshold',
             'maximum_threshold',
-            'last_update'
+            'last_update',
+            'unit_of_measure',
+            'earliest_expiry'
         ]
 
 # --- COMBINED WAREHOUSE STOCK VIEW SERIALIZER ---
@@ -330,5 +333,6 @@ class WarehouseAllItemStockViewSerializer(serializers.ModelSerializer):
             'minimum_threshold',
             'maximum_threshold',
             'last_update',
-            'unit_of_measure'
+            'unit_of_measure',
+            'earliest_expiry'
         ]
