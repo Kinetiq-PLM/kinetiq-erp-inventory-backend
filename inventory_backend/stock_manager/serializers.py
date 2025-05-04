@@ -25,6 +25,7 @@ class AdminItemMasterDataSerializer(serializers.ModelSerializer):
 class InventoryItemSerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source='item.item_name', read_only=True)
     item_id_display = serializers.CharField(source='item.item_id', read_only=True)
+    unit_of_measure = serializers.CharField(source='item.unit_of_measure', read_only=True)
 
     class Meta:
         model = InventoryItem
@@ -43,7 +44,8 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             'is_active',
             'is_demo_item',
             'last_update',
-            'date_created'
+            'date_created',
+            'unit_of_measure'
         ]
         read_only_fields = ['last_update', 'date_created']
         extra_kwargs = {
