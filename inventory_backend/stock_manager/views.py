@@ -4,290 +4,178 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from .models import (
-    Product, ItemMasterData, InventoryItemData, InventoryItemThreshold,
-    Asset, RawMaterial, Purchase_requests, QuotationContent, PurchaseQuotation,
+    ItemMasterData, InventoryItem, InventoryItemThreshold,
+    Purchase_requests, QuotationContent, PurchaseQuotation,
     ProductInventoryView, AssetInventoryView, RawMaterialInventoryView
 )
 from .serializers import (
-    ProductsSerializer, AdminItemMasterDataSerializer,
-    InventoryItemDataSerializer, InventoryItemThresholdSerializer,
-    AssetsSerializer, RawMaterialsSerializer,
+    AdminItemMasterDataSerializer,
+    InventoryItemSerializer,
+    InventoryItemThresholdSerializer,
     PurchaseRequestSerializer, QuotationContentSerializer, PurchaseQuotationSerializer,
     ProductInventoryViewSerializer, AssetInventoryViewSerializer, RawMaterialInventoryViewSerializer
 )
 from django.db.models import F
-from django.db.models import Prefetch, Sum, OuterRef, Subquery, F, IntegerField, Value
-from django.db.models.functions import Coalesce
 from rest_framework.permissions import IsAuthenticated
 
+# Use the specific DB View for ReadOnly operations on Products
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
-    # queryset = Product.objects.all() # Remove or comment out the original queryset
-    serializer_class = ProductsSerializer
+    queryset = ProductInventoryView.objects.all()
+    serializer_class = ProductInventoryViewSerializer
+    # Define filtering/searching if needed based on ProductInventoryView fields
 
+# Use the specific DB View for ReadOnly operations on Assets
+class AssetsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = AssetInventoryView.objects.all()
+    serializer_class = AssetInventoryViewSerializer
+    # Define filtering/searching if needed based on AssetInventoryView fields
+
+# Use the specific DB View for ReadOnly operations on Raw Materials
+class RawMaterialsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = RawMaterialInventoryView.objects.all()
+    serializer_class = RawMaterialInventoryViewSerializer
+    # Define filtering/searching if needed based on RawMaterialInventoryView fields
+
+# Changed to ModelViewSet to allow CUD operations
+class AdminItemMasterDataViewSet(viewsets.ModelViewSet):
+    queryset = ItemMasterData.objects.all()
+    serializer_class = AdminItemMasterDataSerializer # Use updated serializer
+    # Add filtering/searching as needed (e.g., by item_type)
     def get_queryset(self):
-        # Subquery to get the first related ItemMasterData's item_id
-        item_master_subquery = ItemMasterData.objects.filter(
-            product=OuterRef('pk')
-        ).values('item_id')[:1]
-
-        # Subquery to get the minimum threshold from the related threshold object
-        min_threshold_subquery = InventoryItemThreshold.objects.filter(
-            item__product=OuterRef('pk')
-        ).values('minimum_threshold')[:1]
-        
-        # Subquery to get the maximum threshold from the related threshold object
-        max_threshold_subquery = InventoryItemThreshold.objects.filter(
-            item__product=OuterRef('pk')
-        ).values('maximum_threshold')[:1]
-
-        # Subquery to get total stock from the dedicated view
-        total_quantity_subquery = ProductInventoryView.objects.filter(
-            product_id=OuterRef('pk')
-        ).values('total_stock')[:1]
-
-        queryset = Product.objects.annotate(
-            annotated_item_id=Subquery(item_master_subquery),
-            annotated_total_quantity=Coalesce(Subquery(total_quantity_subquery, output_field=IntegerField()), Value(0)),
-            annotated_minimum_threshold=Subquery(min_threshold_subquery),
-            annotated_maximum_threshold=Subquery(max_threshold_subquery)
-        ).prefetch_related(
-            Prefetch('itemmasterdata_set', queryset=ItemMasterData.objects.select_related('product').only('item_id', 'product__product_name'), to_attr='prefetched_itemmasterdata')
-        )
+        queryset = ItemMasterData.objects.all()
+        item_type = self.request.query_params.get('item_type')
+        if item_type:
+            # Assuming 'Product', 'Asset', 'Raw Material' are the valid strings
+            queryset = queryset.filter(item_type=item_type)
         return queryset
 
-class AdminItemMasterDataViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ItemMasterData.objects.all()
-    serializer_class = AdminItemMasterDataSerializer
-
-class InventoryItemDataViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = InventoryItemData.objects.all()
-    serializer_class = InventoryItemDataSerializer
-
-class InventoryItemThresholdViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = InventoryItemThreshold.objects.all()
-    serializer_class = InventoryItemThresholdSerializer
-
-class AssetsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Asset.objects.all()
-    serializer_class = AssetsSerializer
-
-class RawMaterialsViewSet(viewsets.ReadOnlyModelViewSet):
-    # queryset = RawMaterial.objects.all() # Remove or comment out the original queryset
-    serializer_class = RawMaterialsSerializer
-
+# Renamed from InventoryItemDataViewSet and changed to ModelViewSet
+class InventoryItemViewSet(viewsets.ModelViewSet):
+    queryset = InventoryItem.objects.all()
+    serializer_class = InventoryItemSerializer # Use updated serializer
+    # Add filtering/searching as needed (e.g., by item_id from ItemMasterData)
     def get_queryset(self):
-        # Subquery to get the first related ItemMasterData's item_id
-        item_master_subquery = ItemMasterData.objects.filter(
-            material=OuterRef('pk')
-        ).values('item_id')[:1]
+        queryset = InventoryItem.objects.all().select_related('item') # Optimize FK lookup
+        item_master_id = self.request.query_params.get('item_id')
+        warehouse_id = self.request.query_params.get('warehouse_id')
+        item_no = self.request.query_params.get('item_no')
 
-        # Subquery to get the minimum threshold from the related threshold object
-        min_threshold_subquery = InventoryItemThreshold.objects.filter(
-            item__material=OuterRef('pk')
-        ).values('minimum_threshold')[:1]
-        
-        # Subquery to get the maximum threshold from the related threshold object
-        max_threshold_subquery = InventoryItemThreshold.objects.filter(
-            item__material=OuterRef('pk')
-        ).values('maximum_threshold')[:1]
+        if item_master_id:
+            queryset = queryset.filter(item__item_id=item_master_id)
+        if warehouse_id:
+            queryset = queryset.filter(warehouse_id=warehouse_id)
+        if item_no:
+             queryset = queryset.filter(item_no=item_no)
+        return queryset
 
-        # Subquery to calculate the total quantity from related inventory items
-        total_quantity_subquery = InventoryItemData.objects.filter(
-            material=OuterRef('pk')
-        ).values('material').annotate(
-            total=Sum('current_quantity')
-        ).values('total')
-
-        queryset = RawMaterial.objects.annotate(
-            annotated_item_id=Subquery(item_master_subquery),
-            annotated_total_quantity=Coalesce(Subquery(total_quantity_subquery, output_field=IntegerField()), Value(0)),
-            annotated_minimum_threshold=Subquery(min_threshold_subquery),
-            annotated_maximum_threshold=Subquery(max_threshold_subquery)
-        ).prefetch_related(
-            Prefetch('itemmasterdata_set', queryset=ItemMasterData.objects.only('item_id', 'material__material_name'), to_attr='prefetched_itemmasterdata')
-        )
+# Changed to ModelViewSet
+class InventoryItemThresholdViewSet(viewsets.ModelViewSet):
+    queryset = InventoryItemThreshold.objects.all()
+    serializer_class = InventoryItemThresholdSerializer # Use updated serializer
+    # Add filtering/searching as needed
+    def get_queryset(self):
+        queryset = InventoryItemThreshold.objects.all().select_related('item') # Optimize FK lookup
+        item_master_id = self.request.query_params.get('item_id')
+        if item_master_id:
+            queryset = queryset.filter(item__item_id=item_master_id)
         return queryset
 
 class PurchaseRequestViewSet(viewsets.ModelViewSet):
     queryset = Purchase_requests.objects.all()
-    serializer_class = PurchaseRequestSerializer
-    
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        
-        if getattr(instance, '_prefetched_objects_cache', None):
-            instance._prefetched_objects_cache = {}
-            
-        return Response(serializer.data)
+    serializer_class = PurchaseRequestSerializer # Serializer was updated
+
+    # Default create/update/delete methods from ModelViewSet are likely sufficient
+    # unless custom logic or ID generation is needed.
+    # Removed explicit create/update methods for brevity unless needed.
 
 class QuotationContentViewSet(viewsets.ModelViewSet):
     queryset = QuotationContent.objects.all()
-    serializer_class = QuotationContentSerializer
+    serializer_class = QuotationContentSerializer # Serializer was updated
 
 class PurchaseQuotationViewSet(viewsets.ModelViewSet):
     queryset = PurchaseQuotation.objects.all()
-    serializer_class = PurchaseQuotationSerializer
+    serializer_class = PurchaseQuotationSerializer # Serializer was updated
+
+# --- Kept ViewSets for DB Views (ReadOnly) --- Updated filtering fields ---
 
 class ProductInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    A viewset for viewing product inventory data including committed stock and available stock
+    A viewset for viewing product inventory data using the database view.
+    Provides aggregated stock levels.
     """
     queryset = ProductInventoryView.objects.all()
     serializer_class = ProductInventoryViewSerializer
-    # Allow both authenticated and unauthenticated users for testing
-    authentication_classes = [] 
+    authentication_classes = []
     permission_classes = []
-    
+
     def get_queryset(self):
-        # Add logging for debugging
-        print("Fetching product inventory data")
         queryset = ProductInventoryView.objects.all()
-        
-        # Filter by product_id if provided
-        product_id = self.request.query_params.get('product_id', None)
-        if product_id is not None:
-            queryset = queryset.filter(product_id__exact=product_id)
-            
+
+        # Filter by item_id if provided
+        item_id = self.request.query_params.get('item_id', None) # Changed from product_id
+        if item_id is not None:
+            queryset = queryset.filter(item_id=item_id)
+
         # Filter by low stock (available_stock < minimum_threshold)
         low_stock = self.request.query_params.get('low_stock', None)
         if low_stock is not None and low_stock.lower() == 'true':
             queryset = queryset.filter(available_stock__lt=F('minimum_threshold'))
-        
-        # Log result count
-        print(f"Found {queryset.count()} inventory items")
+
         return queryset
-    
-    def list(self, request, *args, **kwargs):
-        try:
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to retrieve inventory data: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            
-    def retrieve(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to retrieve inventory item: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+
+    # Default list/retrieve methods are likely sufficient
+    # Removed explicit list/retrieve methods for brevity unless specific error handling needed
 
 class AssetInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    A viewset for viewing asset inventory data including committed stock, on-order stock, and available stock
+    A viewset for viewing asset inventory data using the database view.
     """
     queryset = AssetInventoryView.objects.all()
     serializer_class = AssetInventoryViewSerializer
-    # Allow both authenticated and unauthenticated users for testing
-    authentication_classes = [] 
+    authentication_classes = []
     permission_classes = []
-    
-    def get_queryset(self):
-        # Add logging for debugging
-        print("Fetching asset inventory data")
-        queryset = AssetInventoryView.objects.all()
-        
-        # Filter by asset_id if provided
-        asset_id = self.request.query_params.get('asset_id', None)
-        if asset_id is not None:
-            queryset = queryset.filter(asset_id__exact=asset_id)
-            
-        # Filter by low stock (available_stock < minimum_threshold)
-        low_stock = self.request.query_params.get('low_stock', None)
-        if low_stock is not None and low_stock.lower() == 'true':
-            queryset = queryset.filter(total_stock__lt=F('minimum_threshold'))
-        
-        # Log result count
-        print(f"Found {queryset.count()} asset inventory items")
-        return queryset
-    
-    def list(self, request, *args, **kwargs):
-        try:
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to retrieve asset inventory data: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            
-    def retrieve(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to retrieve asset inventory item: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
-class RawMaterialInventoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    A viewset for viewing raw material inventory data including on-order stock and total stock
-    """
-    queryset = RawMaterialInventoryView.objects.all()
-    serializer_class = RawMaterialInventoryViewSerializer
-    # Allow both authenticated and unauthenticated users for testing
-    authentication_classes = [] 
-    permission_classes = []
-    
     def get_queryset(self):
-        # Add logging for debugging
-        print("Fetching raw material inventory data")
-        queryset = RawMaterialInventoryView.objects.all()
-        
-        # Filter by material_id if provided
-        material_id = self.request.query_params.get('material_id', None)
-        if material_id is not None:
-            queryset = queryset.filter(material_id__exact=material_id)
-            
+        queryset = AssetInventoryView.objects.all()
+
+        # Filter by item_id if provided
+        item_id = self.request.query_params.get('item_id', None) # Changed from asset_id
+        if item_id is not None:
+            queryset = queryset.filter(item_id=item_id)
+
         # Filter by low stock (total_stock < minimum_threshold)
         low_stock = self.request.query_params.get('low_stock', None)
         if low_stock is not None and low_stock.lower() == 'true':
+            # Note: Asset view doesn't have 'available_stock', using total_stock
             queryset = queryset.filter(total_stock__lt=F('minimum_threshold'))
-        
-        # Log result count
-        print(f"Found {queryset.count()} material inventory items")
+
         return queryset
-    
-    def list(self, request, *args, **kwargs):
-        try:
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to retrieve raw material inventory data: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            
-    def retrieve(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to retrieve raw material inventory item: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+
+    # Default list/retrieve methods are likely sufficient
+
+class RawMaterialInventoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    A viewset for viewing raw material inventory data using the database view.
+    """
+    queryset = RawMaterialInventoryView.objects.all()
+    serializer_class = RawMaterialInventoryViewSerializer
+    authentication_classes = []
+    permission_classes = []
+
+    def get_queryset(self):
+        queryset = RawMaterialInventoryView.objects.all()
+
+        # Filter by item_id if provided
+        item_id = self.request.query_params.get('item_id', None) # Changed from material_id
+        if item_id is not None:
+            queryset = queryset.filter(item_id=item_id)
+
+        # Filter by low stock (total_stock < minimum_threshold)
+        low_stock = self.request.query_params.get('low_stock', None)
+        if low_stock is not None and low_stock.lower() == 'true':
+             # Note: Material view doesn't have 'available_stock', using total_stock
+            queryset = queryset.filter(total_stock__lt=F('minimum_threshold'))
+
+        return queryset
+
+    # Default list/retrieve methods are likely sufficient
