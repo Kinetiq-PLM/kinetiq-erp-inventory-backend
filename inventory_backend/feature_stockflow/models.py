@@ -16,7 +16,7 @@ class InventoryItemData(models.Model):
     item_type = models.CharField(max_length=50)
     item_name = models.CharField(max_length=255)
     item_management = models.CharField(max_length=50)
-    item_management_id = models.CharField(max_length=255)
+    item_no = models.CharField(max_length=50)
     current_quantity = models.IntegerField()
     shelf_life = models.CharField(max_length=50)
     expiry = models.DateTimeField()

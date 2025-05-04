@@ -18,7 +18,7 @@ class InventoryItemDataSerializer(serializers.ModelSerializer):
             'item_type',
             'item_name',
             'item_management',
-            'item_management_id',
+            'item_no',
             'current_quantity',
             'shelf_life',
             'expiry',
