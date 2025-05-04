@@ -460,3 +460,88 @@ class RawMaterialInventoryView(models.Model):
     
     def __str__(self):
         return f"Material Inventory: {self.item_name or self.item_id}"
+
+
+# --- WAREHOUSE SPECIFIC VIEW MODELS ---
+
+class WarehouseProductStockView(models.Model):
+    # Composite key from view: item_id || '-' || warehouse_id
+    id = models.CharField(primary_key=True, max_length=511)
+    item_id = models.CharField(max_length=255)
+    item_name = models.CharField(max_length=255, blank=True, null=True)
+    warehouse_id = models.CharField(max_length=255)
+    total_stock = models.IntegerField(default=0)
+    stock_committed = models.IntegerField(default=0) # Placeholder
+    available_stock = models.IntegerField(default=0) # Placeholder
+    minimum_threshold = models.IntegerField(default=0)
+    maximum_threshold = models.IntegerField(default=0)
+    last_update = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = '"public"."vw_warehouse_product_stock"'
+
+    def __str__(self):
+        return f"Product Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
+
+class WarehouseAssetStockView(models.Model):
+    # Composite key from view: item_id || '-' || warehouse_id
+    id = models.CharField(primary_key=True, max_length=511)
+    item_id = models.CharField(max_length=255)
+    item_name = models.CharField(max_length=255, blank=True, null=True)
+    warehouse_id = models.CharField(max_length=255)
+    total_stock = models.IntegerField(default=0)
+    stock_on_order = models.IntegerField(default=0) # Placeholder
+    minimum_threshold = models.IntegerField(default=0)
+    maximum_threshold = models.IntegerField(default=0)
+    last_update = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = '"public"."vw_warehouse_asset_stock"'
+
+    def __str__(self):
+        return f"Asset Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
+
+class WarehouseMaterialStockView(models.Model):
+    # Composite key from view: item_id || '-' || warehouse_id
+    id = models.CharField(primary_key=True, max_length=511)
+    item_id = models.CharField(max_length=255)
+    item_name = models.CharField(max_length=255, blank=True, null=True)
+    warehouse_id = models.CharField(max_length=255)
+    total_stock = models.IntegerField(default=0)
+    stock_on_order = models.IntegerField(default=0) # Placeholder
+    minimum_threshold = models.IntegerField(default=0)
+    maximum_threshold = models.IntegerField(default=0)
+    last_update = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = '"public"."vw_warehouse_material_stock"'
+
+    def __str__(self):
+        return f"Material Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"
+
+# --- COMBINED WAREHOUSE STOCK VIEW MODEL ---
+
+class WarehouseAllItemStockView(models.Model):
+    # Composite key from underlying views
+    id = models.CharField(primary_key=True, max_length=511)
+    item_id = models.CharField(max_length=255)
+    item_name = models.CharField(max_length=255, blank=True, null=True)
+    warehouse_id = models.CharField(max_length=255)
+    item_type = models.CharField(max_length=50) # Added field
+    total_stock = models.IntegerField(default=0)
+    stock_committed = models.IntegerField(default=0) # Placeholder/Combined
+    available_stock = models.IntegerField(default=0) # Placeholder/Combined
+    stock_on_order = models.IntegerField(default=0) # Placeholder/Combined
+    minimum_threshold = models.IntegerField(default=0)
+    maximum_threshold = models.IntegerField(default=0)
+    last_update = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = '"public"."vw_warehouse_all_item_stock"'
+
+    def __str__(self):
+        return f"{self.item_type} Stock: {self.item_name or self.item_id} in Whs {self.warehouse_id}"

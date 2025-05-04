@@ -2,7 +2,9 @@ from rest_framework import serializers
 from .models import (
     ItemMasterData, InventoryItem, InventoryItemThreshold,
     Purchase_requests, QuotationContent, PurchaseQuotation,
-    ProductInventoryView, AssetInventoryView, RawMaterialInventoryView
+    ProductInventoryView, AssetInventoryView, RawMaterialInventoryView,
+    WarehouseProductStockView, WarehouseAssetStockView, WarehouseMaterialStockView,
+    WarehouseAllItemStockView
 )
 import logging
 
@@ -253,6 +255,75 @@ class RawMaterialInventoryViewSerializer(serializers.ModelSerializer):
             'item_name',
             'stock_on_order',
             'total_stock',
+            'minimum_threshold',
+            'maximum_threshold',
+            'last_update'
+        ]
+
+
+# --- WAREHOUSE SPECIFIC VIEW SERIALIZERS ---
+
+class WarehouseProductStockViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WarehouseProductStockView
+        fields = [
+            'id', # Optional, might not be needed by frontend if filtering by item/whs
+            'item_id',
+            'item_name',
+            'warehouse_id',
+            'total_stock',
+            'stock_committed', # Currently placeholder
+            'available_stock', # Currently placeholder (total)
+            'minimum_threshold',
+            'maximum_threshold',
+            'last_update'
+        ]
+
+class WarehouseAssetStockViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WarehouseAssetStockView
+        fields = [
+            'id', # Optional
+            'item_id',
+            'item_name',
+            'warehouse_id',
+            'total_stock',
+            'stock_on_order', # Currently placeholder
+            'minimum_threshold',
+            'maximum_threshold',
+            'last_update'
+        ]
+
+class WarehouseMaterialStockViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WarehouseMaterialStockView
+        fields = [
+            'id', # Optional
+            'item_id',
+            'item_name',
+            'warehouse_id',
+            'total_stock',
+            'stock_on_order', # Currently placeholder
+            'minimum_threshold',
+            'maximum_threshold',
+            'last_update'
+        ]
+
+# --- COMBINED WAREHOUSE STOCK VIEW SERIALIZER ---
+
+class WarehouseAllItemStockViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WarehouseAllItemStockView
+        fields = [
+            'id', # Optional
+            'item_id',
+            'item_name',
+            'warehouse_id',
+            'item_type',
+            'total_stock',
+            'stock_committed',
+            'available_stock',
+            'stock_on_order',
             'minimum_threshold',
             'maximum_threshold',
             'last_update'

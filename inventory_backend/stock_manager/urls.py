@@ -5,7 +5,9 @@ from .views import (
     InventoryItemViewSet, InventoryItemThresholdViewSet,
     AssetsViewSet, RawMaterialsViewSet,
     PurchaseRequestViewSet, QuotationContentViewSet, PurchaseQuotationViewSet,
-    ProductInventoryViewSet, AssetInventoryViewSet, RawMaterialInventoryViewSet
+    ProductInventoryViewSet, AssetInventoryViewSet, RawMaterialInventoryViewSet,
+    WarehouseProductStockViewSet, WarehouseAssetStockViewSet, WarehouseMaterialStockViewSet,
+    WarehouseAllItemStockViewSet
 )
 
 router = DefaultRouter()
@@ -21,6 +23,14 @@ router.register(r'purchase-quotations', PurchaseQuotationViewSet, basename='purc
 router.register(r'product-inventory', ProductInventoryViewSet, basename='product-inventory')
 router.register(r'asset-inventory', AssetInventoryViewSet, basename='asset-inventory')
 router.register(r'material-inventory', RawMaterialInventoryViewSet, basename='material-inventory')
+
+# --- WAREHOUSE SPECIFIC STOCK VIEW ENDPOINTS ---
+router.register(r'warehouse-stock/products', WarehouseProductStockViewSet, basename='warehouse-product-stock')
+router.register(r'warehouse-stock/assets', WarehouseAssetStockViewSet, basename='warehouse-asset-stock')
+router.register(r'warehouse-stock/materials', WarehouseMaterialStockViewSet, basename='warehouse-material-stock')
+
+# --- COMBINED WAREHOUSE STOCK VIEW ENDPOINT ---
+router.register(r'warehouse-stock/all-items', WarehouseAllItemStockViewSet, basename='warehouse-all-item-stock')
 
 urlpatterns = [
     path('', include(router.urls)),
