@@ -229,7 +229,8 @@ class ProductInventoryViewSerializer(serializers.ModelSerializer):
             'available_stock',
             'minimum_threshold',
             'maximum_threshold',
-            'last_update'
+            'last_update',
+            'unit_of_measure'
         ]
 
 
@@ -243,7 +244,8 @@ class AssetInventoryViewSerializer(serializers.ModelSerializer):
             'total_stock',
             'minimum_threshold',
             'maximum_threshold',
-            'last_update'
+            'last_update',
+            'unit_of_measure'
         ]
 
 
@@ -257,7 +259,8 @@ class RawMaterialInventoryViewSerializer(serializers.ModelSerializer):
             'total_stock',
             'minimum_threshold',
             'maximum_threshold',
-            'last_update'
+            'last_update',
+            'unit_of_measure'
         ]
 
 
@@ -326,5 +329,6 @@ class WarehouseAllItemStockViewSerializer(serializers.ModelSerializer):
             'stock_on_order',
             'minimum_threshold',
             'maximum_threshold',
-            'last_update'
+            'last_update',
+            'unit_of_measure'
         ]

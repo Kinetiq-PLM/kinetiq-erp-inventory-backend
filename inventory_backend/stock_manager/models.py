@@ -419,6 +419,7 @@ class ProductInventoryView(models.Model):
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -436,6 +437,7 @@ class AssetInventoryView(models.Model):
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -453,6 +455,7 @@ class RawMaterialInventoryView(models.Model):
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -538,6 +541,7 @@ class WarehouseAllItemStockView(models.Model):
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True) # Added field
 
     class Meta:
         managed = False
