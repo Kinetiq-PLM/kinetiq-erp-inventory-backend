@@ -42,7 +42,6 @@ class WarehouseMovementSerializer(serializers.ModelSerializer):
             'movement_date',
             'movement_status',
             'destination',
-            'source',
             'comments'
         ]
         read_only_fields = ['movement_id'] 
