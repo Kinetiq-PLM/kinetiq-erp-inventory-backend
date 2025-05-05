@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "65umlgnumg.execute-api.ap-southeast-1.amazonaws.com", "127.0.0.1"]
 
-
+    
 # Application definition
 
 INSTALLED_APPS = [
@@ -71,11 +71,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 # ]                                                                                                     
 
 REST_FRAMEWORK = {
-    'DEFAULT-PERMISSION-CLASSES': (
-        'rest_framework.permission.AllowAny'
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "django_cognito_jwt.JSONWebTokenAuthentication",                                                                                                    
+        "django_cognito_jwt.JSONWebTokenAuthentication",
     ),
 }
 
