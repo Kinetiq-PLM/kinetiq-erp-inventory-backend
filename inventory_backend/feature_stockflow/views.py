@@ -30,13 +30,13 @@ class WarehouseMovementCreateView(APIView):
 
 class WarehouseMovementItemCreateView(APIView):
     def post(self, request):
-        serializer = WarehouseMovementItemSerializer(data=request.data)
+        serializer = WarehouseMovementItemSerializer(data=request.data, many=True)
         if serializer.is_valid():
             # Save the warehouse movement item, with custom ID
-            warehouse_movement_item = serializer.save()
-            return Response(WarehouseMovementItemSerializer(warehouse_movement_item).data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+ 
 class WarehouseMovementDataListView(generics.ListAPIView):
     queryset = WarehouseMovementData.objects.all()
     serializer_class = WarehouseMovementDataSerializer

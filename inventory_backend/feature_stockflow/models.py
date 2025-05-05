@@ -58,9 +58,6 @@ class WarehouseMovement(models.Model):
     default=MovementStatus.COMPLETED
     )
     destination = models.CharField(max_length=255)
-    source = models.CharField(max_length=255, null=True)
-    # reference_id_purchase_order = models.CharField(max_length=255, null=True)
-    # reference_id_order = models.CharField(max_length=255, null=True, blank=True)
     comments = models.CharField(max_length=255, null= True, blank=True)
 
     class Meta:
