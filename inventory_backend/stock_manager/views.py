@@ -24,24 +24,23 @@ from rest_framework.permissions import IsAuthenticated
 
 # Use the specific DB View for ReadOnly operations on Products
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
-    # queryset = ProductInventoryView.objects.all() # Base queryset
-    serializer_class = ProductInventoryViewSerializer
-    # Define filtering/searching if needed based on ProductInventoryView fields
+    queryset = WarehouseProductStockView.objects.all()
+    serializer_class = WarehouseProductStockViewSerializer
 
     def get_queryset(self):
-        """ Filter out products with zero total stock. """
-        queryset = ProductInventoryView.objects.filter(total_stock__gt=0)
+        queryset = WarehouseProductStockView.objects.all()
 
-        # Keep existing filtering logic if needed (e.g., by item_id or low_stock)
         item_id = self.request.query_params.get('item_id')
         if item_id:
             queryset = queryset.filter(item_id=item_id)
         
+        warehouse_id = self.request.query_params.get('warehouse_id')
+        if warehouse_id:
+            queryset = queryset.filter(warehouse_id=warehouse_id)
+
         low_stock = self.request.query_params.get('low_stock')
         if low_stock is not None and low_stock.lower() == 'true':
-             # Note: This might interact with the total_stock > 0 filter.
-             # Low stock implicitly means stock > 0, but less than threshold.
-            queryset = queryset.filter(available_stock__lt=F('minimum_threshold'))
+            queryset = queryset.filter(available_stock__lt=F('minimum_threshold'), available_stock__gt=0)
 
         return queryset
 

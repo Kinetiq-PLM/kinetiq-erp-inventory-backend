@@ -278,11 +278,12 @@ class WarehouseProductStockViewSerializer(serializers.ModelSerializer):
             'item_name',
             'warehouse_id',
             'total_stock',
-            'stock_committed', # Currently placeholder
-            'available_stock', # Currently placeholder (total)
+            'stock_committed', # Now correctly calculated by SQL
+            'available_stock', # Now correctly calculated by SQL
             'minimum_threshold',
             'maximum_threshold',
-            'last_update'
+            'last_update',
+            'unit_of_measure'
         ]
 
 class WarehouseAssetStockViewSerializer(serializers.ModelSerializer):
