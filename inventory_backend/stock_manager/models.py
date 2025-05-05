@@ -475,11 +475,12 @@ class WarehouseProductStockView(models.Model):
     item_name = models.CharField(max_length=255, blank=True, null=True)
     warehouse_id = models.CharField(max_length=255)
     total_stock = models.IntegerField(default=0)
-    stock_committed = models.IntegerField(default=0) # Placeholder
-    available_stock = models.IntegerField(default=0) # Placeholder
+    stock_committed = models.IntegerField(default=0) # Now correctly calculated by SQL
+    available_stock = models.IntegerField(default=0) # Now correctly calculated by SQL
     minimum_threshold = models.IntegerField(default=0)
     maximum_threshold = models.IntegerField(default=0)
     last_update = models.DateTimeField(null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
