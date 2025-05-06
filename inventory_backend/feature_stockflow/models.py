@@ -55,7 +55,7 @@ class WarehouseMovement(models.Model):
     movement_status = models.CharField(
     max_length=20,
     choices=MovementStatus.choices,
-    default=MovementStatus.COMPLETED
+    default=MovementStatus.IN_PROGRESS
     )
     destination = models.CharField(max_length=255)
     comments = models.CharField(max_length=255, null= True, blank=True)
