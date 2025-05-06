@@ -38,97 +38,70 @@ class ItemMasterData(models.Model):
         primary_key=True,
         max_length=255
     )
-    asset_id = models.CharField(
-        db_column='asset_id',
+    item_name = models.CharField(
+        db_column='item_name',
         max_length=255,
-        null=True,
-        blank=True
-    )
-    product = models.ForeignKey(
-        'Product',
-        db_column='product_id',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    material_id = models.CharField(
-        db_column='material_id',
-        max_length=255,
-        null=True,
-        blank=True
+        null=False
     )
     item_type = models.CharField(
         db_column='item_type',
         max_length=50,
-        null=True,
-        blank=True
-    )
-    item_name = models.CharField(
-        db_column='item_name',
-        max_length=255,
-        null=True,
-        blank=True
+        null=True
     )
     unit_of_measure = models.CharField(
         db_column='unit_of_measure',
         max_length=50,
-        null=True,
-        blank=True
+        null=True
     )
     manage_item_by = models.CharField(
         db_column='manage_item_by',
-        max_length=100,
-        null=True,
-        blank=True
+        max_length=50,
+        null=True
     )
     item_status = models.CharField(
         db_column='item_status',
         max_length=50,
-        null=True,
-        blank=True
+        null=True
     )
     preferred_vendor = models.CharField(
         db_column='preferred_vendor',
         max_length=255,
-        null=True,
-        blank=True
+        null=True
     )
     purchasing_uom = models.CharField(
         db_column='purchasing_uom',
         max_length=50,
-        null=True,
-        blank=True
+        null=True
     )
     items_per_purchase_unit = models.IntegerField(
         db_column='items_per_purchase_unit',
-        null=True,
-        blank=True
+        null=True
     )
     purchase_quantity_per_package = models.IntegerField(
         db_column='purchase_quantity_per_package',
-        null=True,
-        blank=True
+        null=True
     )
     sales_uom = models.CharField(
         db_column='sales_uom',
         max_length=50,
-        null=True,
-        blank=True
+        null=True
     )
     items_per_sale_unit = models.IntegerField(
         db_column='items_per_sale_unit',
-        null=True,
-        blank=True
+        null=True
     )
     sales_quantity_per_package = models.IntegerField(
         db_column='sales_quantity_per_package',
-        null=True,
-        blank=True
+        null=True
+    )
+    item_description = models.TextField(
+        db_column='item_description',
+        null=True
     )
 
     class Meta:
         managed = False
-        db_table = 'item_master_data'
+        db_table = 'admin"."item_master_data'
 
     def __str__(self):
         return self.item_name if self.item_name else self.item_id
@@ -151,29 +124,31 @@ class InventoryItem(models.Model):
         primary_key=True,
         max_length=255
     )
-    serial_id = models.CharField(
-        db_column='serial_id',
+    item_id = models.CharField(
+        db_column='item_id',
         max_length=255,
         null=True,
         blank=True
     )
-    productdocu_id = models.CharField(
-        db_column='productdocu_id',
+    item_no = models.CharField(
+        db_column='item_no',
         max_length=255,
+        unique=True,
         null=True,
         blank=True
     )
-    material_id = models.CharField(
-        db_column='material_id',
-        max_length=255,
+    start_of_depreciation = models.DateTimeField(
+        db_column='start_of_depreciation',
         null=True,
         blank=True
     )
-    asset_id = models.CharField(
-        db_column='asset_id',
-        max_length=255,
-        null=True,
-        blank=True
+    is_active = models.BooleanField(
+        db_column='is_active',
+        default=True,
+    )
+    is_demo_item = models.BooleanField(
+        db_column='is_demo_item',
+        default=False,
     )
     item_type = models.CharField(
         db_column='item_type',
@@ -203,11 +178,9 @@ class InventoryItem(models.Model):
     )
     last_update = models.DateTimeField(
         db_column='last_update',
-        auto_now=True
     )
     date_created = models.DateTimeField(
         db_column='date_created',
-        auto_now_add=True
     )
 
     class Meta:
@@ -215,7 +188,7 @@ class InventoryItem(models.Model):
         db_table = 'inventory"."inventory_item'
 
     def __str__(self):
-        return self.inventory_item_id
+        return self.item_id or self.item_no or self.inventory_item_id
 
 
 class InventoryItemThreshold(models.Model):
@@ -244,29 +217,6 @@ class InventoryItemThreshold(models.Model):
 
     def __str__(self):
         return f"Threshold for {self.item_id if self.item_id else 'unknown item'}"
-
-
-class Employee(models.Model):
-    employee_id = models.CharField(
-        db_column='employee_id',
-        primary_key=True,
-        max_length=50
-    )
-    first_name = models.CharField(
-        db_column='first_name',
-        max_length=100
-    )
-    last_name = models.CharField(
-        db_column='last_name',
-        max_length=100
-    )
-
-    class Meta:
-        managed = False
-        db_table = 'employees'
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
 
 
 class CyclicCount(models.Model):
@@ -306,10 +256,9 @@ class CyclicCount(models.Model):
     difference_in_qty = models.IntegerField(
         db_column='difference_in_qty'
     )
-    employee = models.ForeignKey(
-        'Employee',
+    employee_id = models.CharField(
         db_column='employee_id',
-        on_delete=models.SET_NULL,
+        max_length=255,
         null=True,
         blank=True
     )

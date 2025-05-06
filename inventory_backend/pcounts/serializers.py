@@ -1,21 +1,29 @@
 from rest_framework import serializers
-from .models import CyclicCount, InventoryItemThreshold, InventoryItem, ItemMasterData, Product, Employee
+from .models import CyclicCount, InventoryItemThreshold, InventoryItem, ItemMasterData, Product
 import logging
 import traceback
 from django.db import connections
 from django.db import connection
 from django.apps import apps
 
+# print("!!!!!!!! SERIALIZERS.PY FILE LOADED !!!!!!!") # Removed diagnostic print
+
 logger = logging.getLogger(__name__)
 
 class CyclicCountSerializer(serializers.ModelSerializer):
-    inventory_count_id = serializers.CharField(read_only=True)
-    inventory_item_id = serializers.CharField(write_only=True, required=True)
-    employee_id = serializers.CharField(write_only=True, required=False)
-    product_name = serializers.SerializerMethodField()
-    item_id = serializers.SerializerMethodField()
-    employee = serializers.SerializerMethodField(method_name='get_employee_id')
-    warehouse_id_input = serializers.CharField(write_only=True, required=False)
+    # print("---- CyclicCountSerializer CLASS DEFINITION EXECUTED ----") # Removed diagnostic print
+
+    # Field for writing/linking the inventory_item relationship
+    inventory_item_id = serializers.PrimaryKeyRelatedField(
+        queryset=InventoryItem.objects.all(), 
+        source='inventory_item', 
+        write_only=True, 
+        required=True
+    )
+    # Read-only representation of the inventory_item ID
+    item_display_name = serializers.SerializerMethodField() 
+    
+    employee = serializers.SerializerMethodField()
     item_type = serializers.SerializerMethodField()
     warehouse_location = serializers.SerializerMethodField()
 
@@ -23,189 +31,157 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         model = CyclicCount
         fields = [
             "inventory_count_id",
-            "inventory_item_id",
-            "employee_id",
+            "inventory_item_id",    # For writing
+            "item_display_name", 
             "item_onhand",
             "item_actually_counted",
             "difference_in_qty",
-            "employee",
+            "employee", 
             "status",
             "remarks",
             "time_period",
-            "item_id",
-            "product_name",
-            "warehouse_id",
-            "warehouse_id_input",
-            "item_type",
-            "warehouse_location",
+            "warehouse_location", 
+            "item_type", 
         ]
+        # Need employee_id and warehouse_id for writing/updates
+        extra_kwargs = {
+            'employee_id': {'write_only': True, 'required': False, 'allow_null': True},
+            'warehouse_id': {'write_only': True, 'required': False, 'allow_null': True}
+        }
         read_only_fields = [
-            "product_name",
-            "item_id",
-            "employee",
+            "inventory_count_id",
+            "item_display_name", 
+            "employee", 
             "item_type",
-            "warehouse_location",
+            "warehouse_location", 
         ]
+
+    def to_representation(self, instance):
+        # print(f"---- Serializing CyclicCount ID: {instance.inventory_count_id} ----") # Removed diagnostic print
+        representation = super().to_representation(instance)
+        return representation
 
     def create(self, validated_data):
-        inventory_item_id = validated_data.pop('inventory_item_id', None)
-        if inventory_item_id:
-            try:
-                inventory_item = InventoryItem.objects.get(inventory_item_id=inventory_item_id)
-                validated_data['inventory_item'] = inventory_item
+        inventory_item_instance = validated_data.pop('inventory_item', None)
+        employee_id_val = validated_data.get('employee_id')
+        # print(f"Creating count with employee_id: {employee_id_val}, warehouse_id: {validated_data.get('warehouse_id')}") # Removed diagnostic print
 
-                warehouse_id = validated_data.pop('warehouse_id_input', None)
-                if warehouse_id:
-                    validated_data['warehouse_id'] = warehouse_id
-                elif inventory_item.warehouse_id:
-                    validated_data['warehouse_id'] = inventory_item.warehouse_id
-                
-      
-                with connection.cursor() as cursor:
-        
-                    item_type = inventory_item.item_type
-                    item_id_field = None
-                    item_id_value = None
-                    
-                    if item_type == 'Product' and inventory_item.productdocu_id:
-                        item_id_field = 'productdocu_id'
-                        item_id_value = inventory_item.productdocu_id
-                    elif item_type == 'Material' and inventory_item.material_id:
-                        item_id_field = 'material_id'
-                        item_id_value = inventory_item.material_id
-                    elif item_type == 'Asset' and inventory_item.asset_id:
-                        item_id_field = 'asset_id'
-                        item_id_value = inventory_item.asset_id
-                    
-                    if item_id_field and item_id_value and validated_data.get('warehouse_id'):
-                        query = f"""
-                        SELECT SUM(current_quantity) AS item_onhand
-                        FROM inventory."inventory_item" 
-                        WHERE {item_id_field} = %s 
-                        AND warehouse_id = %s
-                        """
-                        cursor.execute(query, [item_id_value, validated_data['warehouse_id']])
-                        result = cursor.fetchone()
-                        if result and result[0] is not None:
-                            validated_data['item_onhand'] = result[0]
-                            print(f"Calculated item_onhand = {result[0]} for {item_id_field}={item_id_value} in warehouse {validated_data['warehouse_id']}")
-                        else:
-                         
-                            validated_data['item_onhand'] = inventory_item.current_quantity
-                            print(f"No aggregated quantity found, using item's current_quantity = {inventory_item.current_quantity}")
-                    else:
- 
-                        validated_data['item_onhand'] = inventory_item.current_quantity
-                        print(f"Using item's current_quantity = {inventory_item.current_quantity}")
+        if 'item_actually_counted' in validated_data and 'item_onhand' in validated_data:
+             validated_data['difference_in_qty'] = validated_data['item_actually_counted'] - validated_data['item_onhand']
+        elif 'difference_in_qty' not in validated_data: 
+             validated_data['difference_in_qty'] = 0 
 
-                if 'item_actually_counted' in validated_data and 'item_onhand' in validated_data:
-                    validated_data['difference_in_qty'] = validated_data['item_actually_counted'] - validated_data['item_onhand']
-                
-            except InventoryItem.DoesNotExist:
-                raise serializers.ValidationError({"inventory_item_id": f"InventoryItem with id {inventory_item_id} does not exist."})
-        else:
-            raise serializers.ValidationError({"inventory_item_id": "This field is required."})
-
-        employee_id_str = validated_data.pop('employee_id', None)
-        if employee_id_str:
-            try:
-                employee_instance = Employee.objects.get(employee_id=employee_id_str)
-                validated_data['employee'] = employee_instance
-            except Employee.DoesNotExist:
-                raise serializers.ValidationError({"employee_id": f"Employee with id {employee_id_str} does not exist."})
-
-        instance = super().create(validated_data)
+        instance = CyclicCount.objects.create(inventory_item=inventory_item_instance, **validated_data)
         return instance
-
-    def get_product_name(self, obj):
-        try:
-            if obj.inventory_item:
-                item_type = obj.inventory_item.item_type
-                if item_type == "Product":
-                    product_id = obj.inventory_item.productdocu_id
-                    if product_id:
-                        try:
-                            product = Product.objects.get(product_id=product_id)
-                            return product.product_name
-                        except Product.DoesNotExist:
-                            return f"Product {product_id} not found"
-                    return f"Item is Product type: {obj.inventory_item.inventory_item_id}"
-                return f"Item type: {item_type}"
-            else:
-                return "No Inventory Item"
-        except AttributeError as e:
-            logger.error(f"AttributeError getting product_name: {str(e)}")
-            return "Error: Attribute Error"
-        except Exception as e:
-            logger.error(f"Error getting product_name: {str(e)}")
-            logger.error(traceback.format_exc())
-            return f"Error: {str(e)}"
-
-    def get_item_id(self, obj):
-        try:
-            if obj.inventory_item:
-                if hasattr(obj.inventory_item, 'productdocu_id') and obj.inventory_item.productdocu_id:
-                    return obj.inventory_item.productdocu_id
-                elif hasattr(obj.inventory_item, 'material_id') and obj.inventory_item.material_id:
-                    return obj.inventory_item.material_id
-                elif hasattr(obj.inventory_item, 'asset_id') and obj.inventory_item.asset_id:
-                    return obj.inventory_item.asset_id
-                return obj.inventory_item.inventory_item_id
-            return None
-        except Exception as e:
-            logger.error(f"Error getting item_id: {str(e)}")
-            return None
-            
-    def get_employee_id(self, obj):
-        try:
-            if obj.employee:
-                return obj.employee.employee_id
-            return None
-        except Exception as e:
-            logger.error(f"Error getting employee_id: {str(e)}")
-            return None
-            
-    def get_warehouse_id(self, obj):
-        try:
-            if obj.inventory_item and hasattr(obj.inventory_item, 'warehouse_id'):
-                return obj.inventory_item.warehouse_id
-            return None
-        except Exception as e:
-            logger.error(f"Error getting warehouse_id: {str(e)}")
-            return None
 
     def get_item_type(self, obj):
         try:
-            if obj.inventory_item:
+            if obj.inventory_item: 
                 return obj.inventory_item.item_type
             return "Unknown"
+        except AttributeError:
+             logger.warning(f"Inventory item not found for CyclicCount {obj.inventory_count_id}")
+             return "Unknown"
         except Exception as e:
-            logger.error(f"Error getting item_type: {str(e)}")
+            logger.error(f"Error getting item_type for {obj.inventory_count_id}: {str(e)}")
             return "Unknown"
+            
+    def get_item_display_name(self, obj):
+        display_name = "N/A"
+        try:
+            related_inventory_item = obj.inventory_item 
+            if not related_inventory_item:
+                logger.warning(f"CyclicCount {obj.inventory_count_id}: No related InventoryItem found.")
+                return obj.inventory_item_id or display_name
+
+            # logger.debug(f"CyclicCount {obj.inventory_count_id}: Found InventoryItem {related_inventory_item.inventory_item_id}") # Removed
+
+            master_item_id = related_inventory_item.item_id
+            if master_item_id:
+                # logger.debug(f"Attempting ItemMasterData lookup with item_id: {master_item_id}") # Removed
+                try:
+                    item_master = ItemMasterData.objects.get(item_id=master_item_id)
+                    if item_master.item_name and item_master.item_name.strip():
+                        display_name = item_master.item_name.strip()
+                        # logger.debug(f"Found name in ItemMasterData: {display_name}") # Removed
+                        return display_name 
+                    else:
+                        logger.warning(f"ItemMasterData found for {master_item_id}, but item_name is empty.")
+                except ItemMasterData.DoesNotExist:
+                    logger.warning(f"ItemMasterData not found for item_id: {master_item_id}")
+                except Exception as e:
+                     logger.error(f"Error fetching ItemMasterData for {master_item_id}: {str(e)}")
+            else:
+                logger.warning(f"InventoryItem {related_inventory_item.inventory_item_id} has no master item_id to look up.")
+
+            item_number = related_inventory_item.item_no
+            if item_number and item_number.strip():
+                display_name = item_number.strip()
+                # logger.debug(f"Using fallback InventoryItem.item_no: {display_name}") # Removed
+                return display_name
+
+            if master_item_id and master_item_id.strip():
+                display_name = master_item_id.strip()
+                # logger.debug(f"Using fallback InventoryItem.item_id: {display_name}") # Removed
+                return display_name
+
+            display_name = obj.inventory_item_id or "N/A"
+            # logger.debug(f"Using final fallback CyclicCount.inventory_item_id: {display_name}") # Removed
+            return display_name
+
+        except AttributeError as e:
+             logger.error(f"AttributeError in get_item_display_name for {obj.inventory_count_id}: {str(e)}.")
+             return obj.inventory_item_id or "N/A"
+        except Exception as e:
+            logger.error(f"Generic error in get_item_display_name for {obj.inventory_count_id}: {str(e)}")
+            return obj.inventory_item_id or "N/A"
+
+    def get_employee(self, obj):
+        emp_id = obj.employee_id
+        if not emp_id:
+            return "Unassigned"
+        
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    ''' 
+                    SELECT first_name, last_name 
+                    FROM admin.users 
+                    WHERE employee_id = %s 
+                    ''',
+                    [emp_id]
+                )
+                result = cursor.fetchone()
+            
+            if result and result[0] and result[1]:
+                return f"{result[0]} {result[1]}"
+            else:
+                logger.warning(f"User not found in admin.users for employee_id: {emp_id}")
+                return emp_id # Fallback to ID
+        except Exception as e:
+            logger.error(f"Error fetching employee name for employee_id {emp_id}: {str(e)}")
+            return emp_id # Fallback to ID
 
     def get_warehouse_location(self, obj):
-        """Get the warehouse location from the admin.warehouse table"""
         try:
             if obj.warehouse_id:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        """
+                        ''' 
                         SELECT warehouse_location 
                         FROM admin.warehouse 
                         WHERE warehouse_id = %s
-                        """, 
+                        ''', 
                         [obj.warehouse_id]
                     )
                     result = cursor.fetchone()
-                    
                 if result and result[0]:
-                    return result[0]
-            return obj.warehouse_id
+                    return result[0] 
+            return None 
         except Exception as e:
-            logger.error(f"Error getting warehouse_location: {str(e)}")
-            return obj.warehouse_id
+            logger.error(f"Error getting warehouse_location for {obj.inventory_count_id}: {str(e)}")
+            return None 
 
-# Add the missing serializers
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -219,7 +195,7 @@ class ItemMasterDataSerializer(serializers.ModelSerializer):
 class InventoryItemSerializer(serializers.ModelSerializer):
     """
     Serializer for the InventoryItem model.
-    Explicitly includes all fields needed by the frontend, with special attention to item_type.
+    Includes fields matching the updated model and SQL schema.
     """
     class Meta:
         model = InventoryItem
@@ -232,10 +208,11 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             'shelf_life',
             'last_update',
             'date_created',
-            'serial_id',
-            'productdocu_id',
-            'material_id',
-            'asset_id'
+            'item_id',
+            'item_no',
+            'start_of_depreciation',
+            'is_active',
+            'is_demo_item'
         ]
 
 class InventoryItemThresholdSerializer(serializers.ModelSerializer):
@@ -243,7 +220,3 @@ class InventoryItemThresholdSerializer(serializers.ModelSerializer):
         model = InventoryItemThreshold
         fields = '__all__'
 
-class EmployeeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Employee
-        fields = '__all__'

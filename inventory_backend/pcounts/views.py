@@ -1,8 +1,8 @@
 from rest_framework import generics, viewsets, status
-from .models import CyclicCount, InventoryItem, Product, ItemMasterData, InventoryItemThreshold, Employee
+from .models import CyclicCount, InventoryItem, Product, ItemMasterData, InventoryItemThreshold
 from .serializers import (
     CyclicCountSerializer, ProductSerializer, ItemMasterDataSerializer, 
-    InventoryItemThresholdSerializer, EmployeeSerializer, InventoryItemSerializer
+    InventoryItemThresholdSerializer, InventoryItemSerializer
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 class CyclicCountList(APIView):
     def get(self, request):
         try:
-            cyclic_counts = CyclicCount.objects.all()
+            # Add back select_related to fetch the related inventory item efficiently
+            cyclic_counts = CyclicCount.objects.select_related('inventory_item').all()
             serializer = CyclicCountSerializer(cyclic_counts, many=True)
             return Response(serializer.data)
         except Exception as e:
@@ -38,6 +39,7 @@ class CyclicCountList(APIView):
 class WarehouseList(APIView):
     """
     View to list all available warehouse IDs and locations.
+    Returns data in the format: [{'warehouse_id': id, 'warehouse_location': name}, ...]
     """
     def get(self, request):
         try:
@@ -48,23 +50,28 @@ class WarehouseList(APIView):
                     """
                     SELECT warehouse_id, warehouse_location 
                     FROM admin.warehouse
+                    ORDER BY warehouse_location, warehouse_id
                     """
                 )
                 rows = cursor.fetchall()
                 
                 for row in rows:
                     warehouse_id = row[0]
-                    warehouse_location = row[1] if row[1] else row[0]
+                    # Use location if available, otherwise fallback to id as name
+                    warehouse_location = row[1] if row[1] else row[0] 
                     warehouse_data.append({
-                        'id': warehouse_id,
-                        'name': warehouse_location
+                        'warehouse_id': warehouse_id,
+                        'warehouse_location': warehouse_location
                     })
             
+            # Fallback if admin.warehouse query returns nothing (optional, based on requirements)
             if not warehouse_data:
                 warehouse_ids = InventoryItem.objects.values_list('warehouse_id', flat=True).distinct()
-       
-                warehouse_data = [{'id': w, 'name': w} for w in warehouse_ids if w]
-            
+                # Create list with id and name (using id as name if location isn't available)
+                warehouse_data = [{'warehouse_id': w, 'warehouse_location': w} for w in warehouse_ids if w]
+                # Optionally sort this fallback list as well
+                warehouse_data.sort(key=lambda x: x['warehouse_location']) 
+
             return Response(warehouse_data)
         except Exception as e:
             logger.error(f"Error fetching warehouse list: {str(e)}")
