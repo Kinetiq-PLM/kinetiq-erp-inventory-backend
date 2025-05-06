@@ -26,6 +26,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
     employee = serializers.SerializerMethodField()
     item_type = serializers.SerializerMethodField()
     warehouse_location = serializers.SerializerMethodField()
+    uom = serializers.SerializerMethodField()
 
     class Meta:
         model = CyclicCount
@@ -42,6 +43,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "time_period",
             "warehouse_location", 
             "item_type", 
+            "uom",
         ]
         # Need employee_id and warehouse_id for writing/updates
         extra_kwargs = {
@@ -54,6 +56,7 @@ class CyclicCountSerializer(serializers.ModelSerializer):
             "employee", 
             "item_type",
             "warehouse_location", 
+            "uom",
         ]
 
     def to_representation(self, instance):
@@ -181,6 +184,37 @@ class CyclicCountSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error getting warehouse_location for {obj.inventory_count_id}: {str(e)}")
             return None 
+
+    def get_uom(self, obj):
+        try:
+            related_inventory_item = obj.inventory_item
+            if not related_inventory_item:
+                return "N/A"
+
+            master_item_id = related_inventory_item.item_id
+            if master_item_id:
+                try:
+                    item_master = ItemMasterData.objects.get(item_id=master_item_id)
+                    # Ensure unit_of_measure exists and is not empty
+                    if item_master.unit_of_measure and item_master.unit_of_measure.strip():
+                        return item_master.unit_of_measure.strip()
+                    else:
+                        logger.warning(f"ItemMasterData {master_item_id} found, but unit_of_measure is empty.")
+                except ItemMasterData.DoesNotExist:
+                    # If master data doesn't exist, we can't get UOM from it
+                    logger.warning(f"ItemMasterData not found for item_id: {master_item_id} to get UOM.")
+                except Exception as e:
+                     logger.error(f"Error fetching UOM from ItemMasterData for {master_item_id}: {str(e)}")
+            else:
+                # If inventory item doesn't link to master data
+                logger.warning(f"InventoryItem {related_inventory_item.inventory_item_id} has no master item_id to get UOM.")
+
+            # Fallback if UOM couldn't be found via ItemMasterData
+            return "N/A"
+
+        except Exception as e:
+            logger.error(f"Generic error in get_uom for {obj.inventory_count_id}: {str(e)}")
+            return "N/A"
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
