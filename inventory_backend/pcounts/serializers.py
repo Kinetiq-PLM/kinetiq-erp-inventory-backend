@@ -31,33 +31,53 @@ class CyclicCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = CyclicCount
         fields = [
-            "inventory_count_id",
-            "inventory_item_id",    # For writing
-            "item_display_name", 
-            "item_onhand",
-            "item_actually_counted",
-            "difference_in_qty",
-            "employee", 
-            "status",
-            "remarks",
-            "time_period",
-            "warehouse_location", 
-            "item_type", 
-            "uom",
+            "inventory_count_id",       # Read-only (PK)
+            "inventory_item_id",        # Write-only (custom field above, maps to 'inventory_item' model field)
+            "item_display_name",        # Read-only (method field)
+            "item_onhand",              # Read/Write (model field)
+            "item_actually_counted",    # Read/Write (model field)
+            "difference_in_qty",        # Read/Write (model field)
+            
+            "employee_id",              # For writing the model's employee_id field
+            "employee",                 # Read-only (method field for display)
+            
+            "status",                   # Read/Write (model field)
+            "remarks",                  # Read/Write (model field)
+            "time_period",              # Read/Write (model field)
+            
+            "warehouse_id",             # For writing the model's warehouse_id field
+            "warehouse_location",       # Read-only (method field for display)
+            
+            "item_type",                # Read-only (method field)
+            "uom",                      # Read-only (method field)
         ]
-        # Need employee_id and warehouse_id for writing/updates
         extra_kwargs = {
-            'employee_id': {'write_only': True, 'required': False, 'allow_null': True},
-            'warehouse_id': {'write_only': True, 'required': False, 'allow_null': True}
+            'inventory_count_id': {'read_only': True},
+            'employee_id': {
+                'write_only': True, 
+                'required': True # Match frontend validation
+            },
+            'warehouse_id': {
+                'write_only': True, 
+                'required': True # Match frontend validation
+            },
+            # The following read_only_fields are now implicitly handled by SerializerMethodField 
+            # or by 'write_only' on the direct model fields above.
+            # 'item_display_name': {'read_only': True},
+            # 'employee': {'read_only': True},
+            # 'item_type': {'read_only': True},
+            # 'warehouse_location': {'read_only': True},
+            # 'uom': {'read_only': True},
         }
-        read_only_fields = [
-            "inventory_count_id",
-            "item_display_name", 
-            "employee", 
-            "item_type",
-            "warehouse_location", 
-            "uom",
-        ]
+        # No longer need a separate read_only_fields list here if using write_only and SerializerMethodFields effectively
+        # read_only_fields = [
+        #     "inventory_count_id",
+        #     "item_display_name", 
+        #     "employee", 
+        #     "item_type",
+        #     "warehouse_location", 
+        #     "uom",
+        # ]
 
     def to_representation(self, instance):
         # print(f"---- Serializing CyclicCount ID: {instance.inventory_count_id} ----") # Removed diagnostic print
