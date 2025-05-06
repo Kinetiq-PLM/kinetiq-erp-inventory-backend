@@ -160,29 +160,32 @@ class UserList(APIView):
     """
     def get(self, request):
         try:
-            # Use direct DB connection to fetch users
+            # Use direct DB connection to fetch users and their roles
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT user_id, first_name, last_name 
-                    FROM admin.users
-                    ORDER BY first_name, last_name
+                    SELECT u.user_id, u.first_name, u.last_name, u.employee_id, r.role_name 
+                    FROM admin.users u
+                    LEFT JOIN admin.roles_permission r ON u.role_id = r.role_id
+                    ORDER BY u.first_name, u.last_name
                     """
                 )
                 rows = cursor.fetchall()
                 
-                # Format as list of objects with id and name
+                # Format as list of objects
                 users = []
                 for row in rows:
                     users.append({
                         'user_id': row[0],
-                        'name': f"{row[1]} {row[2]}"  # Combine first_name and last_name
+                        'name': f"{row[1]} {row[2]}",  # Combine first_name and last_name
+                        'employee_id': row[3],
+                        'role_name': row[4] if row[4] else 'N/A' # Handle cases where role might be null
                     })
                 
                 return Response(users)
         except Exception as e:
             logger.error(f"Error fetching users: {str(e)}")
-            return Response({"error": f"Failed to fetch users: {str(e)}"}, status=500)
+            return Response({"error": f"Failed to fetch users: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CyclicCountStatusUpdate(APIView):
     """
