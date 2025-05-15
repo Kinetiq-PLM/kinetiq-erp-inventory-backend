@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1krsc!aemd5ptzutf#%tay9anl1(v541bcj0(09h2moxf=_vd_'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "65umlgnumg.execute-api.ap-southeast-1.amazonaws.com", "127.0.0.1"]
+ALLOWED_HOSTS = ["65umlgnumg.execute-api.ap-southeast-1.amazonaws.com"]
 
     
 # Application definition
@@ -61,14 +64,14 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware"
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-#     "http://localhost:8080",
-#     "http://127.0.0.1:8080",
-# ]                                                                                                     
+CORS_ALLOWED_ORIGINS = [
+    "https://d2dhcd346f3g6s.cloudfront.net",
+    "http://kinetiq-shell-app.s3-website-ap-southeast-1.amazonaws.com"
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://d2dhcd346f3g6s.cloudfront.net",
+    "http://kinetiq-shell-app.s3-website-ap-southeast-1.amazonaws.com"
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -103,7 +106,6 @@ WSGI_APPLICATION = 'inventory_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-import os
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

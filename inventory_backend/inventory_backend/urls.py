@@ -23,7 +23,7 @@ def home_view(request):
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls), # Commented out for production
     path('api/', include('feature_depreciation_report.urls')),
     path('api/', include('stock_manager.urls')),
     path('api/', include('pcounts.urls')),
