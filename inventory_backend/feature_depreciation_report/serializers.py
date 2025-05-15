@@ -11,6 +11,7 @@ class ExpiryReportDataSerializer(serializers.ModelSerializer):
                   'item_management', 'item_no',
                   'expiry',
                   'current_quantity',
-                  'expiry_report_status',]
+                  'expiry_report_status',
+                  'warehouse_location']
 
         

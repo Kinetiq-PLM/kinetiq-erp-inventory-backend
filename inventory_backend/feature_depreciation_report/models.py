@@ -10,6 +10,7 @@ class ExpiryReportData(models.Model):
     expiry = models.DateTimeField()
     current_quantity = models.IntegerField()
     expiry_report_status = models.CharField(max_length=255)
+    warehouse_location = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         managed = False  
